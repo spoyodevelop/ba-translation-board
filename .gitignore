@@ -1,0 +1,16 @@
+node_modules/
+dist/
+# Retained backups from the retired local mirror.
+.mirror-data/
+.data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.log
+.env
+.env.*
+!.env.example
+docs/
+reports/
+research_notes/
+.claude/

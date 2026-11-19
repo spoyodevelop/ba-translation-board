@@ -1,0 +1,13 @@
+{
+  "name": "블아 번역 탭 모아보기",
+  "short_name": "블아 번역 탭 모아보기",
+  "description": "블루아카이브 번역 게시물을 한곳에서 모아보세요.",
+  "lang": "ko",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
