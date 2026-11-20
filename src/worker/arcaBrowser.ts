@@ -151,6 +151,11 @@ export async function startArcaBrowser(deps: {
           status: result.status,
           headers: result.headers,
         });
+      } catch (error) {
+        // 호출한 쪽이 중단하면 페이지 안 fetch는 이유 없는 AbortError로 끝난다.
+        // 타임아웃 같은 실제 원인이 기록에 남도록 호출한 쪽의 중단 이유를 먼저 던진다.
+        original.signal.throwIfAborted();
+        throw error;
       } finally {
         original.signal.removeEventListener("abort", abort);
       }
