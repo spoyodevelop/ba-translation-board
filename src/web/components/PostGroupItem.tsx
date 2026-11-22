@@ -3,7 +3,8 @@ import type { Post, Source } from "../../shared/post";
 import { sources } from "../config";
 import { formatPostTime } from "../format";
 import { colors } from "../theme";
-import type { Badge } from "../badges";
+import { isSameBadge } from "../badges.ts";
+import type { Badge } from "../badges.ts";
 
 // 제목 옆이 붐비지 않도록 앞의 두 개만 보여 주고 나머지는 숫자로 줄인다.
 const visibleBadgeCount = 2;
@@ -22,7 +23,7 @@ type Props = {
   selectedArtist: string | null;
   onSelectArtist: (key: string) => void;
   badges: Badge[];
-  selectedBadgeKey: string | null;
+  selectedBadge: Badge | null;
   onSelectBadge: (badge: Badge) => void;
   visitedPostIds: Set<string>;
   onOpenPost: (post: Post) => void;
@@ -36,7 +37,7 @@ export function PostGroupItem({
   selectedArtist,
   onSelectArtist,
   badges,
-  selectedBadgeKey,
+  selectedBadge,
   onSelectBadge,
   visitedPostIds,
   onOpenPost,
@@ -79,10 +80,10 @@ export function PostGroupItem({
         <Chips $ownLineOnMobile={chipCount >= 2}>
           {badges.slice(0, visibleBadgeCount).map((badge) => (
             <BadgeChip
-              key={badge.key}
+              key={`${badge.kind}:${badge.id}`}
               $kind={badge.kind}
               type="button"
-              aria-pressed={badge.key === selectedBadgeKey}
+              aria-pressed={selectedBadge !== null && isSameBadge(badge, selectedBadge)}
               title={`${badge.name} 글 모아보기`}
               onClick={() => onSelectBadge(badge)}
             >
@@ -240,8 +241,8 @@ const BadgeChip = styled.button<{ $kind: Badge["kind"] }>`
   padding: 2px 8px;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: ${({ $kind }) => ($kind === "group" ? colors.dcBadge : colors.arcaBadge)};
-  color: ${({ $kind }) => ($kind === "group" ? colors.dcBadgeText : colors.arcaBadgeText)};
+  background: ${({ $kind }) => ($kind === "club" ? colors.dcBadge : colors.arcaBadge)};
+  color: ${({ $kind }) => ($kind === "club" ? colors.dcBadgeText : colors.arcaBadgeText)};
   font: inherit;
   font-size: 12px;
   font-weight: 600;

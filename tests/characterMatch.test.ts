@@ -4,19 +4,21 @@ import {
   characterAliases,
   characters,
 } from "../src/characters/characterList.ts";
-import { groups } from "../src/characters/groupList.ts";
+import { clubs } from "../src/characters/clubList.ts";
 import {
   createBadgeMatcher,
-  defaultBlockedWords,
-} from "../src/characters/matchCharacters.ts";
+  needsWordBoundary,
+} from "../src/characters/matchBadges.ts";
+import { titleWords } from "../src/characters/titleWords.ts";
 
 const matchBadges = createBadgeMatcher({
   characters,
   aliases: characterAliases,
-  groups,
+  clubs,
+  words: titleWords,
 });
 const match = (title: string) => matchBadges(title).characterIds;
-const matchGroups = (title: string) => matchBadges(title).groupIds;
+const matchClubs = (title: string) => matchBadges(title).clubIds;
 
 test("longer names win over names inside them", () => {
   assert.deepEqual(match("핫산) 에리나에게 레슬링 기술 거는 안나"), ["erina", "anna"]);
@@ -95,29 +97,45 @@ test("aliases point to listed characters and are not hidden", () => {
   for (const alias of characterAliases) {
     for (const id of alias.characterIds) assert.ok(ids.has(id), `${alias.text}: ${id}`);
     assert.ok(!names.has(alias.text), alias.text);
-    for (const word of defaultBlockedWords) assert.ok(!word.includes(alias.text), `${alias.text} ⊂ ${word}`);
+    for (const word of titleWords.blockedWords) assert.ok(!word.includes(alias.text), `${alias.text} ⊂ ${word}`);
   }
 });
 
-test("group names become group badges, not member badges", () => {
+test("club names become club badges, not member badges", () => {
   assert.deepEqual(matchBadges("핫산) 낚시하러 가는 겜창부"), {
     characterIds: [],
-    groupIds: ["game-development"],
+    clubIds: ["game-development"],
   });
-  assert.deepEqual(matchGroups("핫산) 183호 특별반은 관심받고 싶어"), ["special-class"]);
-  assert.deepEqual(matchGroups("핫산) 선생님을 찾는 짜리우스 스쿼드"), ["arius-squad"]);
+  assert.deepEqual(matchClubs("핫산) 183호 특별반은 관심받고 싶어"), ["special-class"]);
+  assert.deepEqual(matchClubs("핫산) 선생님을 찾는 짜리우스 스쿼드"), ["arius-squad"]);
 });
 
-test("latin group names match without case inside their own word", () => {
-  assert.deepEqual(matchGroups("핫산) fox 가정부 서비스 입니다!.manhwa"), ["fox"]);
-  assert.deepEqual(matchGroups("#FOX소대"), ["fox"]);
-  assert.deepEqual(matchGroups("핫산) 꽃가루 때문에 고생하는 C&C ①~④"), ["cleaning-and-clearing"]);
-  assert.deepEqual(matchGroups("firefox 설정"), []);
+test("latin club names match without case inside their own word", () => {
+  assert.deepEqual(matchClubs("핫산) fox 가정부 서비스 입니다!.manhwa"), ["fox"]);
+  assert.deepEqual(matchClubs("#FOX소대"), ["fox"]);
+  assert.deepEqual(matchClubs("핫산) 꽃가루 때문에 고생하는 C&C ①~④"), ["cleaning-and-clearing"]);
+  assert.deepEqual(matchClubs("firefox 설정"), []);
 });
 
-test("characters and groups in one title are both found", () => {
+test("characters and clubs in one title are both found", () => {
   assert.deepEqual(matchBadges("핫산) 엔지니어부의 새 발명품을 테스트하는 게임개발부와 유즈"), {
     characterIds: ["yuzu"],
-    groupIds: ["game-development"],
+    clubIds: ["game-development"],
   });
+});
+
+test("one rule decides which texts need word boundaries", () => {
+  const strict = titleWords.strictBoundaryTexts;
+  assert.equal(needsWordBoundary("린", strict), true);
+  assert.equal(needsWordBoundary("fox", strict), true);
+  assert.equal(needsWordBoundary("니야", strict), true);
+  assert.equal(needsWordBoundary("미카", strict), false);
+  assert.equal(needsWordBoundary("나기사", strict), false);
+});
+
+// 두 글자 별명은 이름보다 낱말 속에 들어 있기 쉬워서 빠짐없이 경계를 봐야 한다.
+test("every short alias needs a word boundary", () => {
+  for (const { text } of characterAliases)
+    if (text.length <= 2)
+      assert.ok(needsWordBoundary(text, titleWords.strictBoundaryTexts), text);
 });

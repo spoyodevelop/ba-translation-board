@@ -3,8 +3,9 @@ import {
   characterAliases,
   characters,
 } from "../src/characters/characterList.ts";
-import { groups } from "../src/characters/groupList.ts";
-import { createBadgeMatcher } from "../src/characters/matchCharacters.ts";
+import { clubs } from "../src/characters/clubList.ts";
+import { createBadgeMatcher } from "../src/characters/matchBadges.ts";
+import { titleWords } from "../src/characters/titleWords.ts";
 import { openTursoDatabase } from "../src/database/connection.ts";
 import { mergePostGroups } from "../src/grouping/postGroups.ts";
 import type { Post } from "../src/shared/post.ts";
@@ -53,11 +54,16 @@ async function main() {
 }
 
 function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
-  const match = createBadgeMatcher({ characters, aliases: characterAliases, groups });
+  const match = createBadgeMatcher({
+    characters,
+    aliases: characterAliases,
+    clubs,
+    words: titleWords,
+  });
   const nameOf = new Map(characters.map((c) => [c.id, c.name]));
   const byPost = rows.map(({ id, board, title }) => ({ id, board, title, ...match(title) }));
   const hasBadge = (post: (typeof byPost)[number]) =>
-    post.characterIds.length > 0 || post.groupIds.length > 0;
+    post.characterIds.length > 0 || post.clubIds.length > 0;
 
   // 같은 글 묶음은 한쪽 제목에만 이름이 있어도 묶음 전체에 뱃지를 붙인다고 보고 잰다.
   const merged = mergePostGroups(rows, edges);
@@ -81,11 +87,11 @@ function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
     );
   }
 
-  const groupCounts = groups.map((group) => {
-    const count = byPost.filter((post) => post.groupIds.includes(group.id)).length;
-    return `${group.name} ${count}`;
+  const clubCounts = clubs.map((club) => {
+    const count = byPost.filter((post) => post.clubIds.includes(club.id)).length;
+    return `${club.name} ${count}`;
   });
-  console.log(`\n단체: ${groupCounts.join(", ")}`);
+  console.log(`\n단체: ${clubCounts.join(", ")}`);
 
   const counts = new Map<string, number>();
   for (const post of byPost)

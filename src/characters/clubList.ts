@@ -1,4 +1,5 @@
-export type Group = {
+// 동아리·소대처럼 여러 학생이 속한 단체다. 같은 글 묶음(PostGroup)과 헷갈리지 않게 Club이라 부른다.
+export type Club = {
   // 판정 결과에 남는 값이라 이름을 고쳐도 바꾸지 않는다.
   id: string;
   // 뱃지에 보이는 이름이다.
@@ -10,7 +11,7 @@ export type Group = {
 // 캐릭터 이름 없이 단체 이름만 쓴 운영 제목이 5번 이상 나온 단체다(2026-11-23 기준).
 // 멤버로 풀지 않는다. 특별반이나 FOX 소대처럼 시기마다 멤버가 달라 틀리기 쉽고 뱃지가 늘어난다.
 // 학교 이름은 "게헨나컵"처럼 행사 이름이거나 너무 넓어서 넣지 않는다.
-export const groups: Group[] = [
+export const clubs: Club[] = [
   { id: "game-development", name: "게임개발부", texts: ["게임개발부", "겜개부", "겜창부", "게개부"] },
   { id: "tea-party", name: "티파티", texts: ["티파티"] },
   { id: "pandemonium", name: "만마전", texts: ["만마전", "수마전"] },
