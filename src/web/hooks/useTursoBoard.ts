@@ -3,7 +3,9 @@ import type { BoardSnapshot } from "../../database/boardSnapshot";
 import { createBoardClient } from "../boardClient.ts";
 import type { Board } from "../../shared/boards.ts";
 
-const boardRefreshIntervalMs = 60_000;
+// 서버 응답은 CDN에 5분 캐시되므로 더 자주 받아도 같은 목록을 다시 내려받을 뿐이다.
+// 다른 탭에 있다 돌아오면 간격과 상관없이 바로 다시 받는다.
+const boardRefreshIntervalMs = 5 * 60_000;
 
 const emptySnapshot: BoardSnapshot = {
   posts: [],
