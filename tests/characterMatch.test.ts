@@ -65,6 +65,8 @@ test("aliases point to their characters", () => {
   assert.deepEqual(match("핫산) 레후미 레즈사 합동모션"), ["hifumi", "azusa"]);
   assert.deepEqual(match("핫산) 무임승차를 검거한 철도가키"), ["hikari", "nozomi"]);
   assert.deepEqual(match("핫산) 나기 쨩과 고양이"), ["nagisa"]);
+  assert.deepEqual(match("핫산) 한정판 케이크가 먹고 싶은 쿠로코"), ["shiroko_terror"]);
+  assert.deepEqual(match("시로코 테러 그림"), ["shiroko_terror"]);
   assert.deepEqual(match("저번에 그린 니야니야교수님이에요"), ["professor-smug"]);
 });
 

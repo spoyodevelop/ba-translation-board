@@ -45,6 +45,8 @@ export const characters: Character[] = [
   { id: "yoshimi", name: "요시미", familyName: "이바라기", school: "trinity" },
   { id: "hoshino", name: "호시노", familyName: "타카나시", school: "abydos" },
   { id: "shiroko", name: "시로코", familyName: "스나오오카미", school: "abydos" },
+  // 다른 세계의 시로코라 시로코와 따로 둔다. 성으로 찾으면 시로코와 구별할 수 없어 성은 비운다.
+  { id: "shiroko_terror", name: "시로코*테러", familyName: null, school: "abydos" },
   { id: "aru", name: "아루", familyName: "리쿠하치마", school: "gehenna" },
   { id: "mashiro", name: "마시로", familyName: "시즈야마", school: "trinity" },
   { id: "haruna", name: "하루나", familyName: "쿠로다테", school: "gehenna" },
@@ -225,7 +227,9 @@ export const characterAliases: CharacterAlias[] = [
   { text: "레후미", characterIds: ["hifumi"] },
   { text: "레즈사", characterIds: ["azusa"] },
   { text: "나기", characterIds: ["nagisa"] },
-  { text: "쿠로코", characterIds: ["shiroko"] },
+  { text: "쿠로코", characterIds: ["shiroko_terror"] },
+  { text: "시로코 테러", characterIds: ["shiroko_terror"] },
+  { text: "테로코", characterIds: ["shiroko_terror"] },
   { text: "수로하", characterIds: ["iroha"] },
   { text: "니야니야", characterIds: ["professor-smug"] },
   // 이름을 니야니야 교수로 고치기 전의 번역 표기도 쓰인다.
