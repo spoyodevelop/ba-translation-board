@@ -367,6 +367,15 @@ const SearchForm = styled.form`
     background: ${colors.button};
     cursor: pointer;
   }
+  /* 브라우저 기본 화살표는 오른쪽 테두리에 바짝 붙어 튀어나와 보여서 직접 그리고 여백을 둔다. */
+  select {
+    appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239b9da1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+  }
   /* 브라우저 기본 포커스 테두리는 둥근 모서리와 어긋나 보여서 사이트의 다른 포커스 표시와 맞춘다. */
   input:focus-visible, select:focus-visible, button:focus-visible {
     outline: 2px solid ${colors.accent};
