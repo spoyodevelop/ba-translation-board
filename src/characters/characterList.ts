@@ -162,6 +162,9 @@ export const characters: Character[] = [
   { id: "anna", name: "안나", familyName: "니키", school: "redwinter" },
   { id: "erina", name: "에리나", familyName: "니키", school: "redwinter" },
   { id: "tsumugi", name: "츠무기", familyName: "시이나", school: "wildhunt" },
+  // 몰루로그·SchaleDB에 아직 없는 일섭 신규 학생이다. id는 SchaleDB 규칙대로 이름을 옮겨 적었다.
+  { id: "manami", name: "마나미", familyName: "우루와시", school: "wildhunt" },
+  { id: "urara", name: "우라라", familyName: "운린인", school: null },
   { id: "rana", name: "라나", familyName: "후루하타", school: "redwinter" },
   { id: "arona", name: "아로나", familyName: null, school: "schale" },
   { id: "plana", name: "프라나", familyName: null, school: "schale" },

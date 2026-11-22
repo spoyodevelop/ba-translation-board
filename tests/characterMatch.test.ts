@@ -63,6 +63,12 @@ test("blocked words keep popular names that also appear inside words", () => {
   assert.deepEqual(match("길을 잃고 오디세이아 배에 들어온 고양이 히나 쨩"), ["hina"]);
 });
 
+test("new students not yet on mollulog are listed", () => {
+  assert.deepEqual(match("번역) 우루와시 마나미와 예술"), ["manami"]);
+  assert.deepEqual(match("마나미 우라라 헤일로 모작"), ["manami", "urara"]);
+  assert.deepEqual(match("키라라 그림"), ["kirara"]);
+});
+
 test("each character appears once in title order", () => {
   assert.deepEqual(match("나츠 카즈사 아~앙 나츠"), ["natsu", "kazusa"]);
 });
