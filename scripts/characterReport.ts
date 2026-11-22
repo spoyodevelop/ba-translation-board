@@ -1,5 +1,8 @@
 import { writeFile } from "node:fs/promises";
-import { characters } from "../src/characters/characterList.ts";
+import {
+  characterAliases,
+  characters,
+} from "../src/characters/characterList.ts";
 import { createCharacterMatcher } from "../src/characters/matchCharacters.ts";
 import { openTursoDatabase } from "../src/database/connection.ts";
 import { mergePostGroups } from "../src/grouping/postGroups.ts";
@@ -49,7 +52,7 @@ async function main() {
 }
 
 function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
-  const match = createCharacterMatcher(characters);
+  const match = createCharacterMatcher(characters, characterAliases);
   const nameOf = new Map(characters.map((c) => [c.id, c.name]));
   const byPost = rows.map(({ id, board, title }) => ({
     id,
