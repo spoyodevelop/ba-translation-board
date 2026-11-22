@@ -128,6 +128,13 @@ export function PostBoard({
     boardRef.current?.scrollIntoView({ block: "start" });
   }
 
+  // 보고 있는 뱃지를 다시 누르면 전체 보기로 돌아간다.
+  function toggleBadge(badge: Badge) {
+    const isSelected = selectedBadge !== null && isSameBadge(badge, selectedBadge);
+    if (isSelected) selectBadge(null);
+    else selectBadge(badge);
+  }
+
   function goToPage(nextPage: number) {
     setPage(nextPage);
     boardRef.current?.scrollIntoView({ block: "start" });
@@ -242,7 +249,7 @@ export function PostBoard({
             onSelectArtist={(key) => selectArtist({ kind: "artist", key })}
             badges={group.badges}
             selectedBadge={selectedBadge}
-            onSelectBadge={selectBadge}
+            onSelectBadge={toggleBadge}
             visitedPostIds={visitedPostIds}
             onOpenPost={(post) =>
               onOpenPost({

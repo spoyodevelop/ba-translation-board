@@ -77,18 +77,23 @@ export function PostGroupItem({
           )}
         </ContentTitle>
         <Chips $ownLineOnMobile={chipCount >= 2}>
-          {badges.slice(0, visibleBadgeCount).map((badge) => (
-            <BadgeChip
-              key={`${badge.kind}:${badge.id}`}
-              $kind={badge.kind}
-              type="button"
-              aria-pressed={selectedBadge !== null && isSameBadge(badge, selectedBadge)}
-              title={`${badge.name} 글 모아보기`}
-              onClick={() => onSelectBadge(badge)}
-            >
-              {badge.name}
-            </BadgeChip>
-          ))}
+          {badges.slice(0, visibleBadgeCount).map((badge) => {
+            const isSelected = selectedBadge !== null && isSameBadge(badge, selectedBadge);
+            let title = `${badge.name} 글 모아보기`;
+            if (isSelected) title = "전체 보기";
+            return (
+              <BadgeChip
+                key={`${badge.kind}:${badge.id}`}
+                $kind={badge.kind}
+                type="button"
+                aria-pressed={isSelected}
+                title={title}
+                onClick={() => onSelectBadge(badge)}
+              >
+                {badge.name}
+              </BadgeChip>
+            );
+          })}
           {hiddenBadges.length > 0 && (
             <HiddenBadges title={hiddenBadges.map((badge) => badge.name).join(", ")}>
               +{hiddenBadges.length}
