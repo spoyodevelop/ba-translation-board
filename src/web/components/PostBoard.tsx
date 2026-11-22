@@ -367,6 +367,11 @@ const SearchForm = styled.form`
     background: ${colors.button};
     cursor: pointer;
   }
+  /* 브라우저 기본 포커스 테두리는 둥근 모서리와 어긋나 보여서 사이트의 다른 포커스 표시와 맞춘다. */
+  input:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid ${colors.accent};
+    outline-offset: 2px;
+  }
 `;
 
 const State = styled.p`
