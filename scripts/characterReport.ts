@@ -10,6 +10,7 @@ import type { Post } from "../src/shared/post.ts";
 
 const help = "사용법: characters:report [결과 JSON 경로]";
 const unmatchedSampleSize = 30;
+const inWordListSize = 40;
 
 type Row = Omit<Post, "duplicateGroupId"> & { board: string };
 
@@ -88,10 +89,42 @@ function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
   const unseen = characters.filter((c) => !counts.has(c.id)).map((c) => c.name);
   console.log(`\n한 번도 안 나온 캐릭터 ${unseen.length}명: ${unseen.join(", ")}`);
 
+  // 이름이 다른 글자와 붙어 나온 낱말이다. 애칭이면 그대로 두고, 다른 단어면 매칭기의 막는 단어나
+  // 경계를 엄격히 보는 이름에 더한다.
+  const inWord = new Map<string, number>();
+  for (const post of byPost)
+    for (const id of post.characterIds)
+      for (const word of wordsAround(post.title, nameOf.get(id)!))
+        inWord.set(`${nameOf.get(id)}: ${word}`, (inWord.get(`${nameOf.get(id)}: ${word}`) || 0) + 1);
+  const repeated = [...inWord].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]);
+  console.log(`\n낱말 속에 붙어 나온 이름 (2번 이상, 상위 ${inWordListSize}개)`);
+  console.log(repeated.slice(0, inWordListSize).map(([key, n]) => `${key}×${n}`).join(", "));
+
   const unmatched = byPost.filter((post) => post.characterIds.length === 0);
   console.log(`\n이름을 못 찾은 제목 (${unmatchedSampleSize}개 표본)`);
   for (const post of sample(unmatched, unmatchedSampleSize)) console.log(`  ${post.title}`);
   return { byPost };
+}
+
+// 이름 뒤에 조사나 호칭만 붙은 낱말은 이름이 맞으므로 보여 주지 않는다.
+const particleOnly =
+  /^(?:쨩|짱|쟝|님|양|씨|선배)?(?:이|가|의|은|는|을|를|와|과|랑|이랑|도|한테|에게|에|로|으로|만|께서|이가|야|아)?$/u;
+
+// 이름 앞이나 뒤에 한글이 붙어 있으면 이름을 품은 낱말 전체를 돌려준다.
+function wordsAround(title: string, name: string): string[] {
+  const hangul = /\p{Script=Hangul}/u;
+  const words: string[] = [];
+  for (let index = title.indexOf(name); index >= 0; index = title.indexOf(name, index + name.length)) {
+    let start = index;
+    let end = index + name.length;
+    while (start > 0 && hangul.test(title[start - 1])) start -= 1;
+    while (end < title.length && hangul.test(title[end])) end += 1;
+    const before = title.slice(start, index);
+    const after = title.slice(index + name.length, end);
+    if (before === "" && particleOnly.test(after)) continue;
+    if (end - start > name.length) words.push(title.slice(start, end));
+  }
+  return words;
 }
 
 function percent(part: number, whole: number): string {
