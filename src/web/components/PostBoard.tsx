@@ -4,6 +4,10 @@ import type { Post } from "../../shared/post";
 import type { PostArtist } from "../../database/boardSnapshot";
 import type { ArtistFilterEvent, OpenedPost, SearchEvent } from "../analytics.ts";
 import { useArtistFilter } from "../hooks/useArtistFilter.ts";
+import { useBadgeFilter } from "../hooks/useBadgeFilter.ts";
+import { findBadges } from "../badges";
+import type { Badge } from "../badges";
+import { BadgeFilterBar } from "./BadgeFilterBar";
 import type { ArtistFilter } from "../hooks/useArtistFilter.ts";
 import type { FollowedArtist } from "../personalState.ts";
 import { ArtistFilterBar } from "./ArtistFilterBar";
@@ -57,8 +61,12 @@ export function PostBoard({
   if (showsOriginalArtists) artistFilter = requestedArtistFilter;
   let selectedArtistKey: string | null = null;
   if (artistFilter?.kind === "artist") selectedArtistKey = artistFilter.key;
+  const { badge: selectedBadge, selectBadge: selectBadgeFilter } = useBadgeFilter();
   const hasFilters =
-    query !== "" || minRecommendations !== null || artistFilter !== null;
+    query !== "" ||
+    minRecommendations !== null ||
+    artistFilter !== null ||
+    selectedBadge !== null;
   const boardRef = useRef<HTMLElement>(null);
   const groups = useMemo(() => groupPosts(posts, artists), [posts, artists]);
   const artistGroupCounts = useMemo(() => countArtistGroups(groups), [groups]);
@@ -71,13 +79,17 @@ export function PostBoard({
     const needle = query.toLowerCase();
     return groups.filter((group) => {
       if (!matchesArtistFilter(group, artistFilter, followedKeys)) return false;
+      const hasSelectedBadge =
+        selectedBadge === null ||
+        group.badges.some((badge) => badge.key === selectedBadge.key);
+      if (!hasSelectedBadge) return false;
       return group.posts.some((post) => {
         const meetsMinimum = minRecommendations === null ||
           (post.recommendCount != null && post.recommendCount >= minRecommendations);
         return meetsMinimum && post.title.toLowerCase().includes(needle);
       });
     });
-  }, [groups, hasFilters, query, minRecommendations, artistFilter, followedKeys]);
+  }, [groups, hasFilters, query, minRecommendations, artistFilter, followedKeys, selectedBadge]);
   // 지금 목록에 그 작가 글이 없으면 팔로우할 때 저장해 둔 이름을 쓴다.
   const selectedArtist = useMemo((): FollowedArtist | null => {
     if (selectedArtistKey === null) return null;
@@ -103,6 +115,12 @@ export function PostBoard({
       matchesArtistFilter(group, next, followedKeys),
     ).length;
     onFilterArtist({ mode: next.kind, groupCount });
+  }
+
+  function selectBadge(next: Badge | null) {
+    selectBadgeFilter(next);
+    setPage(1);
+    boardRef.current?.scrollIntoView({ block: "start" });
   }
 
   function goToPage(nextPage: number) {
@@ -171,6 +189,9 @@ export function PostBoard({
           onUnfollow={onUnfollowArtist}
         />
       )}
+      {selectedBadge && (
+        <BadgeFilterBar badge={selectedBadge} onClear={() => selectBadge(null)} />
+      )}
       {showPagination && (
         <Pagination
           currentPage={currentPage}
@@ -202,6 +223,9 @@ export function PostBoard({
             }))}
             selectedArtist={selectedArtistKey}
             onSelectArtist={(key) => selectArtist({ kind: "artist", key })}
+            badges={group.badges}
+            selectedBadgeKey={selectedBadge?.key ?? null}
+            onSelectBadge={selectBadge}
             visitedPostIds={visitedPostIds}
             onOpenPost={(post) =>
               onOpenPost({
@@ -230,6 +254,7 @@ type PostGroup = {
   key: string;
   posts: Post[];
   artists: Omit<GroupArtist, "groupCount" | "followed">[];
+  badges: Badge[];
   publishedAt: number;
 };
 
@@ -255,6 +280,7 @@ function groupPosts(posts: Post[], postArtists: PostArtist[]): PostGroup[] {
         (a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt),
       ),
       artists: groupArtists(groupedPosts, artistsByPost),
+      badges: findBadges(groupedPosts),
       publishedAt: Math.max(
         ...groupedPosts.map((post) => Date.parse(post.publishedAt)),
       ),
