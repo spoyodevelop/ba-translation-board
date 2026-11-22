@@ -39,7 +39,10 @@ test("family names point to the character", () => {
 
 test("common words that contain names are ignored", () => {
   assert.deepEqual(match("핫산) 냥카이브 코토네"), ["kotone"]);
-  assert.deepEqual(match("핫산) 링고 클럽 - 세미나는 트릭하고 싶어"), []);
+  assert.deepEqual(matchBadges("핫산) 링고 클럽 - 세미나는 트릭하고 싶어"), {
+    characterIds: [],
+    clubIds: ["seminar"],
+  });
   assert.deepEqual(match("선생이랑 레이스하고온 아즈사"), ["azusa"]);
 });
 

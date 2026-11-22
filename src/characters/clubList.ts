@@ -22,6 +22,9 @@ export const clubs: Club[] = [
   { id: "after-school-sweets", name: "방과후 디저트부", texts: ["방과후 디저트부", "디저트부", "방디부"] },
   { id: "arius-squad", name: "아리우스 스쿼드", texts: ["아리우스 스쿼드", "아리우스스쿼드", "스쿼드"] },
   { id: "prefect-team", name: "선도부", texts: ["선도부"] },
+  // 밀레니엄 학생회다. 제목은 적지만, 미나 오매칭을 막으려고 지우기만 하던 단어라 단체로 둔다.
+  // 단체 표기가 미나보다 길어 먼저 잡히고 지워진다.
+  { id: "seminar", name: "세미나", texts: ["세미나"] },
   { id: "cleaning-and-clearing", name: "C&C", texts: ["c&c"] },
   { id: "school-lunch", name: "급양부", texts: ["급양부"] },
 ];
