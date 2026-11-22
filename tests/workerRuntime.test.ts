@@ -1475,7 +1475,9 @@ test("artist resolver reads X handles without requests, caches pixiv profiles an
       },
       request: async (input, init) => {
         const url = String(input);
-        requests.push(url.replace("https://www.pixiv.net/ajax/", ""));
+        requests.push(url.replace("https://www.pixiv.net/ajax/", "").replace("https://x.com/", "x:"));
+        // 지워진 트윗이다.
+        if (url === "https://x.com/i/status/2") return new Response(null, { status: 404 });
         assert.equal(new Headers(init?.headers).get("Referer"), "https://www.pixiv.net/");
         if (url.endsWith("/illust/12")) return new Response("{}", { status: 404 });
         if (url.endsWith("/illust/13") && blocked) return new Response("", { status: 429 });
@@ -1490,10 +1492,11 @@ test("artist resolver reads X handles without requests, caches pixiv profiles an
       xMissing: 1,
       pixivFound: 2,
       pixivMissing: 1,
+      xError: null,
       pixivError: "픽시브 응답 429",
     });
     // 같은 작가의 두 번째 작품은 저장된 프로필을 쓴다.
-    assert.deepEqual(requests, ["illust/10", "user/7?full=1", "illust/11", "illust/12", "illust/13"]);
+    assert.deepEqual(requests, ["x:i/status/2", "illust/10", "user/7?full=1", "illust/11", "illust/12", "illust/13"]);
     assert.equal(sleeps, requests.length - 1);
     assert.deepEqual(
       (await client.execute("SELECT platform, original_id, status, artist_id, artist_name, attempts FROM artwork_artists ORDER BY platform, original_id")).rows.map((row) => ({ ...row })),
@@ -1518,6 +1521,86 @@ test("artist resolver reads X handles without requests, caches pixiv profiles an
     assert.deepEqual(requests, ["illust/13"]);
     assert.equal(sleeps, 0);
     assert.deepEqual(await db.artists.listPending("pixiv", 10), []);
+  });
+});
+
+test("X links without a handle resolve through the x.com redirect, within a per-run limit, stopping X lookups at the first failure", async () => {
+  await database(async (client, db) => {
+    const target = post("dc", 1);
+    await db.posts.upsert([target]);
+    const iLinks = Array.from({ length: 33 }, (_, index) => `${100 + index}`);
+    await db.caches.saveSources({
+      postId: target.id,
+      version: sourceCacheVersion,
+      checkedAt: time,
+      expiresAt: time + 1,
+      imageUrl: null,
+      sources: [
+        ...iLinks.map((id) => ({ key: `x:${id}` as const, url: `https://x.com/i/status/${id}` })),
+        { key: "x:999", url: "https://x.com/Named/status/999" },
+      ],
+    });
+    const requests: string[] = [];
+    let badRedirect = true;
+    let blocked = false;
+    const resolver = createNodeArtistResolver({
+      repositories: db,
+      now: () => time,
+      sleep: async () => {},
+      request: async (input, init) => {
+        const url = String(input);
+        const id = url.split("/").pop()!;
+        requests.push(id);
+        assert.equal(init?.method, "HEAD");
+        assert.equal(init?.redirect, "manual");
+        if (blocked) return new Response(null, { status: 429 });
+        // 다른 트윗으로 보내는 리다이렉트는 받지 않는다.
+        if (id === "101" && badRedirect)
+          return new Response(null, { status: 307, headers: { Location: "https://x.com/Other/status/1" } });
+        return new Response(null, {
+          status: 307,
+          headers: { Location: `https://x.com/Artist_${id}/status/${id}` },
+        });
+      },
+    });
+    const signal = new AbortController().signal;
+    const rows = async () =>
+      Object.fromEntries(
+        (await client.execute("SELECT original_id, status, artist_id, attempts FROM artwork_artists WHERE platform = 'x'")).rows.map(
+          (row) => [String(row.original_id), `${row.status}:${row.artist_id}:${row.attempts}`],
+        ),
+      );
+
+    // 101은 계정명을 알 수 없는 리다이렉트라 실패로 세고 이번 X 조회를 멈춘다.
+    // 요청을 멈춘 뒤에도 URL에 계정명이 있는 작품은 처리한다.
+    const first = await resolver.resolve(signal);
+    assert.deepEqual(requests, ["100", "101"]);
+    assert.equal(first.xFound, 2);
+    assert.equal(first.xError, "X 리다이렉트에 계정명이 없습니다.");
+    assert.equal((await rows())["100"], "found:artist_100:0");
+    assert.equal((await rows())["101"], "failed:null:1");
+    assert.equal((await rows())["999"], "found:named:0");
+
+    // 다음 작업은 실패한 작품부터 다시 묻고, 한 번에 30개까지만 요청한다.
+    badRedirect = false;
+    requests.length = 0;
+    const second = await resolver.resolve(signal);
+    assert.equal(requests.length, 30);
+    assert.equal(requests[0], "101");
+    assert.equal(second.xFound, 30);
+    assert.equal(second.xError, null);
+    assert.equal((await rows())["101"].startsWith("found:artist_101"), true);
+
+    // 차단(429)도 실패로 세고 멈춘다.
+    blocked = true;
+    requests.length = 0;
+    const third = await resolver.resolve(signal);
+    assert.deepEqual(requests, ["131"]);
+    assert.equal(third.xError, "X 응답 429");
+    assert.deepEqual(
+      (await db.artists.listPending("x", 10)).map((artwork) => artwork.originalId),
+      ["131", "132"],
+    );
   });
 });
 

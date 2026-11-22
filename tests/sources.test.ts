@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   artistIdentity,
   PixivFormatError,
+  xHandleFromStatusRedirect,
   parsePixivIllust,
   parsePixivProfileXHandle,
   xHandleFromProfileUrl,
@@ -108,4 +109,17 @@ test("pixiv artists with a linked X account share the X artist key", () => {
     artistIdentity({ platform: "pixiv", artistId: "8", artistName: "", xHandle: null }),
     { key: "pixiv:8", name: "pixiv 8" },
   );
+});
+
+test("reads the X handle from the redirect of a status link without one", () => {
+  assert.equal(
+    xHandleFromStatusRedirect("https://x.com/Artist_B/status/2124162261304705462", "2124162261304705462"),
+    "Artist_B",
+  );
+  assert.equal(xHandleFromStatusRedirect("/Artist_A/status/5", "5"), "Artist_A");
+  // 다른 트윗, 다른 사이트, 계정이 아닌 경로는 받지 않는다.
+  assert.equal(xHandleFromStatusRedirect("https://x.com/a/status/6", "5"), null);
+  assert.equal(xHandleFromStatusRedirect("https://example.com/a/status/5", "5"), null);
+  assert.equal(xHandleFromStatusRedirect("https://x.com/i/status/5", "5"), null);
+  assert.equal(xHandleFromStatusRedirect("https://x.com/login?redirect=1", "5"), null);
 });

@@ -16,6 +16,24 @@ export function xHandleFromStatusUrl(value: string): string | null {
   return readXHandle(match?.[1]);
 }
 
+// `x.com/i/status/{id}`가 리다이렉트한 주소(`/{계정}/status/{id}`)에서 계정명을 꺼낸다.
+// 다른 트윗으로 가는 주소는 받지 않는다.
+export function xHandleFromStatusRedirect(
+  location: string,
+  statusId: string,
+): string | null {
+  let url: URL;
+  try {
+    url = new URL(location, "https://x.com");
+  } catch {
+    return null;
+  }
+  if (!xHosts.has(url.hostname.replace(/^www\./, ""))) return null;
+  const match = url.pathname.match(/^\/([^/]+)\/status\/(\d+)\/?$/);
+  if (!match || match[2] !== statusId) return null;
+  return readXHandle(match[1]);
+}
+
 // 픽시브 프로필의 X 링크(`https://twitter.com/{계정}` 등)에서 계정명을 꺼낸다.
 export function xHandleFromProfileUrl(value: string): string | null {
   let url: URL;
