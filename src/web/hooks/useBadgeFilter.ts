@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Badge, BadgeCatalog, BadgeKind } from "../badges.ts";
 
-// 뱃지 필터를 주소에 남겨 뒤로 가기·새로고침·공유한 링크가 같은 목록을 연다. 값은 `종류:id`다.
+// 공유한 링크와 뒤로 가기가 같은 목록을 열도록 주소에 남긴다.
 const badgeParam = "badge";
-// 단체를 club으로 부르기 전에 공유된 링크(`group:id`)도 연다.
+// 이름을 바꾸기 전에 공유된 group: 링크.
 const legacyKinds: Record<string, BadgeKind> = { group: "club" };
 
 export function badgeFromSearch(search: string, catalog: BadgeCatalog): Badge | null {

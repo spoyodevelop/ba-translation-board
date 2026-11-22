@@ -6,7 +6,6 @@ import { colors } from "../theme";
 import { isSameBadge } from "../badges.ts";
 import type { Badge } from "../badges.ts";
 
-// 제목 옆이 붐비지 않도록 앞의 두 개만 보여 주고 나머지는 숫자로 줄인다.
 const visibleBadgeCount = 2;
 
 // 묶음에 실린 원작의 작가다. 목록 전체에서 이 작가의 묶음 수와 팔로우 여부를 함께 보여 준다.
@@ -180,8 +179,7 @@ const TitleRow = styled.div`
   margin: 0 0 9px;
 `;
 
-// 데스크톱에서는 칩이 제목 옆에 이어 붙는다. 모바일에서 뱃지와 작가 칩이 합쳐 둘 이상이면 하나만
-// 제목 옆에 남고 나머지가 다음 줄로 갈라지지 않도록 칩 전체를 다음 줄로 내린다.
+// 모바일에서 칩이 제목 옆과 다음 줄로 갈라지지 않게 통째로 내린다.
 const Chips = styled.div<{ $ownLineOnMobile: boolean }>`
   display: contents;
 
@@ -192,7 +190,6 @@ const Chips = styled.div<{ $ownLineOnMobile: boolean }>`
       display: flex;
       flex-basis: 100%;
       flex-wrap: wrap;
-      /* 제목과 칩 줄이 붙어 보이지 않도록 줄 간격(4px)에 더 띄운다. */
       margin-top: 4px;
       align-items: baseline;
       gap: 4px 8px;
@@ -234,7 +231,6 @@ const ArtistChip = styled.button`
   }
 `;
 
-// 작가 칩과 구별되도록 테두리 대신 옅은 배경을 쓰고, 단체는 캐릭터와 다른 색을 쓴다.
 const BadgeChip = styled.button<{ $kind: Badge["kind"] }>`
   display: inline-flex;
   align-items: center;
@@ -256,7 +252,6 @@ const BadgeChip = styled.button<{ $kind: Badge["kind"] }>`
   }
 `;
 
-// 숨긴 뱃지 이름은 마우스를 올리면 보인다.
 const HiddenBadges = styled.span`
   color: ${colors.textMuted};
   font-size: 12px;

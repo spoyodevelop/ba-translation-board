@@ -1,19 +1,14 @@
 export type Character = {
-  // 판정 결과에 남는 값이라 이름을 고쳐도 바꾸지 않는다.
+  // 주소에 남는 값이라 이름을 고쳐도 바꾸지 않는다.
   id: string;
-  // 제목에 주로 쓰이는 이름이다. 의상 이름은 붙이지 않는다.
   name: string;
-  // 성이 없거나 이름에 이미 들어 있으면 null이다.
   familyName: string | null;
-  // 소속 학교가 없는 캐릭터는 null이다.
   school: string | null;
 };
 
-// 제목에서 이름 대신 쓰이는 별명이다. 커플링 별명은 캐릭터 여럿을 가리킨다.
 export type CharacterAlias = { text: string; characterIds: string[] };
 
-// 몰루로그 학생 목록(2026-11-23)과 Blue Archive Wiki NPC 목록에서 사람이 고른 캐릭터다.
-// 의상은 같은 캐릭터로 묶는다. id는 SchaleDB 경로 이름이고, NPC는 위키 문서 이름에서 만든다.
+// 몰루로그 학생과 위키 NPC에서 고른 목록. 의상은 같은 캐릭터로 묶는다.
 export const characters: Character[] = [
   { id: "akane", name: "아카네", familyName: "무로카사", school: "millennium" },
   { id: "chise", name: "치세", familyName: "와라쿠", school: "hyakkiyako" },
@@ -45,7 +40,7 @@ export const characters: Character[] = [
   { id: "yoshimi", name: "요시미", familyName: "이바라기", school: "trinity" },
   { id: "hoshino", name: "호시노", familyName: "타카나시", school: "abydos" },
   { id: "shiroko", name: "시로코", familyName: "스나오오카미", school: "abydos" },
-  // 다른 세계의 시로코라 시로코와 따로 둔다. 성으로 찾으면 시로코와 구별할 수 없어 성은 비운다.
+  // 성으로는 시로코와 구별할 수 없어 비운다.
   { id: "shiroko_terror", name: "시로코*테러", familyName: null, school: "abydos" },
   { id: "aru", name: "아루", familyName: "리쿠하치마", school: "gehenna" },
   { id: "mashiro", name: "마시로", familyName: "시즈야마", school: "trinity" },
@@ -162,7 +157,6 @@ export const characters: Character[] = [
   { id: "anna", name: "안나", familyName: "니키", school: "redwinter" },
   { id: "erina", name: "에리나", familyName: "니키", school: "redwinter" },
   { id: "tsumugi", name: "츠무기", familyName: "시이나", school: "wildhunt" },
-  // 몰루로그·SchaleDB에 아직 없는 일섭 신규 학생이다. id는 SchaleDB 규칙대로 이름을 옮겨 적었다.
   { id: "manami", name: "마나미", familyName: "우루와시", school: "wildhunt" },
   { id: "urara", name: "우라라", familyName: "운린인", school: "wildhunt" },
   { id: "rana", name: "라나", familyName: "후루하타", school: "redwinter" },
@@ -221,8 +215,7 @@ export const characters: Character[] = [
   { id: "malkuth", name: "말쿠트", familyName: null, school: null },
 ];
 
-// 이름을 못 찾은 운영 제목에서 10번 이상 나온 별명만 둔다. 자잘한 별명은 오매칭 위험에 비해 얻는 게 적다.
-// 2026-11-23 기준이다. 새 별명은 characters:report의 못 찾은 제목을 보고 더한다.
+// 운영 제목에 10번 이상 나온 별명만 둔다.
 export const characterAliases: CharacterAlias[] = [
   { text: "칼학", characterIds: ["kal-student-council-president"] },
   { text: "총학", characterIds: ["student-council-president"] },
@@ -235,7 +228,6 @@ export const characterAliases: CharacterAlias[] = [
   { text: "테로코", characterIds: ["shiroko_terror"] },
   { text: "수로하", characterIds: ["iroha"] },
   { text: "니야니야", characterIds: ["professor-smug"] },
-  // 이름을 니야니야 교수로 고치기 전의 번역 표기도 쓰인다.
   { text: "히죽히죽", characterIds: ["professor-smug"] },
   { text: "아로프라", characterIds: ["arona", "plana"] },
   { text: "철도가키", characterIds: ["hikari", "nozomi"] },
