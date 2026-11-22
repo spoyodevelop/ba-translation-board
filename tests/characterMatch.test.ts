@@ -10,6 +10,7 @@ test("longer names win over names inside them", () => {
   assert.deepEqual(match("핫산) 쉬운 여자 스미카"), ["sumika"]);
   assert.deepEqual(match("핫산) 같이 목욕하는 이치카와 미카"), ["ichika", "mika"]);
   assert.deepEqual(match("핫산) 쿠루미는 스고이쟈나이!"), ["kurumi"]);
+  assert.deepEqual(match("핫산) 달맞이를 준비하는 프라나"), ["plana"]);
 });
 
 test("a short name still matches beside a longer one", () => {
@@ -24,7 +25,6 @@ test("family names point to the character", () => {
 test("common words that contain names are ignored", () => {
   assert.deepEqual(match("핫산) 냥카이브 코토네"), ["kotone"]);
   assert.deepEqual(match("핫산) 링고 클럽 - 세미나는 트릭하고 싶어"), []);
-  assert.deepEqual(match("핫산) 달맞이를 준비하는 프라나"), []);
   assert.deepEqual(match("선생이랑 레이스하고온 아즈사"), ["azusa"]);
 });
 

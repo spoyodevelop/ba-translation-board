@@ -11,7 +11,6 @@ export const defaultBlockedWords = [
   "레이지",
   "세미나",
   "제미나이",
-  "프라나",
   "히요코",
   // 동물을 세는 "한 마리"다.
   "한 마리",
