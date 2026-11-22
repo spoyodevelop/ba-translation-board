@@ -22,7 +22,8 @@ const FeedbackLink = styled.a`
   display: inline-block;
   margin-top: 12px;
   color: ${colors.accent};
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
   text-underline-offset: 4px;
 
   &:hover {
