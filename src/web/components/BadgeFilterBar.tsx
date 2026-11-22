@@ -7,7 +7,6 @@ type Props = {
   onClear: () => void;
 };
 
-// 뱃지 하나로 거른 목록을 보고 있다는 것을 알리고 풀 수 있게 한다.
 export function BadgeFilterBar({ badge, onClear }: Props) {
   return (
     <Bar>
@@ -21,7 +20,6 @@ export function BadgeFilterBar({ badge, onClear }: Props) {
   );
 }
 
-// 작가 필터 줄과 같은 모양으로 둔다.
 const Bar = styled.div`
   display: flex;
   align-items: center;

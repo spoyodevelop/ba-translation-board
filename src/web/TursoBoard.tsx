@@ -5,6 +5,11 @@ import { SourceLinks } from "./components/SourceLinks";
 import { BoardTabs } from "./components/BoardTabs";
 import { useBoardTab } from "./hooks/useBoardTab";
 import { PostBoard } from "./components/PostBoard";
+import { createBadgeCatalog } from "./badges.ts";
+import { characterAliases, characters } from "../characters/characterList.ts";
+import { clubs } from "../characters/clubList.ts";
+import { createBadgeMatcher } from "../characters/matchBadges.ts";
+import { titleWords } from "../characters/titleWords.ts";
 import { useTursoBoard } from "./hooks/useTursoBoard";
 import { usePersonalState } from "./hooks/usePersonalState";
 import { mergePostGroups } from "../grouping/postGroups.ts";
@@ -22,6 +27,14 @@ import { postRetentionMonths } from "../shared/post.ts";
 const koreanDate = new Intl.DateTimeFormat("ko-KR", {
   dateStyle: "long",
   timeZone: "Asia/Seoul",
+});
+
+
+// 캐시를 탭 전환과 목록 갱신 사이에 함께 쓰도록 앱에서 한 번만 만든다.
+const badgeCatalog = createBadgeCatalog({
+  matchTitle: createBadgeMatcher({ characters, aliases: characterAliases, clubs, words: titleWords }),
+  characters,
+  clubs,
 });
 
 export function TursoBoard() {
@@ -71,6 +84,7 @@ export function TursoBoard() {
         key={tab.board}
         posts={posts}
         artists={board.snapshot.artists}
+        badgeCatalog={badgeCatalog}
         followedArtists={personal.followedArtists}
         visitedPostIds={personal.visits}
         onOpenPost={openPost}

@@ -15,7 +15,7 @@
     "test:sources": "node --experimental-strip-types --test tests/sources.test.ts tests/sourceCollector.test.ts tests/imageHash.test.ts tests/candidates.test.ts tests/creativeMatch.test.ts tests/characterMatch.test.ts",
     "test:database": "node --experimental-strip-types --test tests/tursoDatabase.test.ts",
     "test:worker": "node --experimental-strip-types --test tests/nodeWorker.test.ts tests/workerRuntime.test.ts tests/creativeGrouping.test.ts tests/crashReports.test.ts",
-    "test:client": "node --experimental-strip-types --test tests/boardClient.test.ts",
+    "test:client": "node --experimental-strip-types --test tests/boardClient.test.ts tests/badgeCatalog.test.ts",
     "turso:migrate": "node --experimental-strip-types scripts/tursoDatabase.ts",
     "test:live": "node --experimental-strip-types --test tests/liveWorker.test.ts",
     "worker": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/worker.ts",

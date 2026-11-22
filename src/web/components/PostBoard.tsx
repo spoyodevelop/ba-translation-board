@@ -5,8 +5,8 @@ import type { PostArtist } from "../../database/boardSnapshot";
 import type { ArtistFilterEvent, OpenedPost, SearchEvent } from "../analytics.ts";
 import { useArtistFilter } from "../hooks/useArtistFilter.ts";
 import { useBadgeFilter } from "../hooks/useBadgeFilter.ts";
-import { findBadges } from "../badges";
-import type { Badge } from "../badges";
+import { isSameBadge } from "../badges.ts";
+import type { Badge, BadgeCatalog } from "../badges.ts";
 import { BadgeFilterBar } from "./BadgeFilterBar";
 import type { ArtistFilter } from "../hooks/useArtistFilter.ts";
 import type { FollowedArtist } from "../personalState.ts";
@@ -20,6 +20,7 @@ import type { GroupArtist } from "./PostGroupItem";
 type Props = {
   posts: Post[];
   artists: PostArtist[];
+  badgeCatalog: BadgeCatalog;
   followedArtists: FollowedArtist[];
   visitedPostIds: Set<string>;
   onOpenPost: (opened: OpenedPost) => void;
@@ -37,6 +38,7 @@ type Props = {
 export function PostBoard({
   posts,
   artists,
+  badgeCatalog,
   followedArtists,
   visitedPostIds,
   onOpenPost,
@@ -61,14 +63,17 @@ export function PostBoard({
   if (showsOriginalArtists) artistFilter = requestedArtistFilter;
   let selectedArtistKey: string | null = null;
   if (artistFilter?.kind === "artist") selectedArtistKey = artistFilter.key;
-  const { badge: selectedBadge, selectBadge: selectBadgeFilter } = useBadgeFilter();
+  const { badge: selectedBadge, selectBadge: selectBadgeFilter } = useBadgeFilter(badgeCatalog);
   const hasFilters =
     query !== "" ||
     minRecommendations !== null ||
     artistFilter !== null ||
     selectedBadge !== null;
   const boardRef = useRef<HTMLElement>(null);
-  const groups = useMemo(() => groupPosts(posts, artists), [posts, artists]);
+  const groups = useMemo(
+    () => groupPosts(posts, artists, badgeCatalog),
+    [posts, artists, badgeCatalog],
+  );
   const artistGroupCounts = useMemo(() => countArtistGroups(groups), [groups]);
   const followedKeys = useMemo(
     () => new Set(followedArtists.map((artist) => artist.key)),
@@ -81,7 +86,7 @@ export function PostBoard({
       if (!matchesArtistFilter(group, artistFilter, followedKeys)) return false;
       const hasSelectedBadge =
         selectedBadge === null ||
-        group.badges.some((badge) => badge.key === selectedBadge.key);
+        group.badges.some((badge) => isSameBadge(badge, selectedBadge));
       if (!hasSelectedBadge) return false;
       return group.posts.some((post) => {
         const meetsMinimum = minRecommendations === null ||
@@ -236,7 +241,7 @@ export function PostBoard({
             selectedArtist={selectedArtistKey}
             onSelectArtist={(key) => selectArtist({ kind: "artist", key })}
             badges={group.badges}
-            selectedBadgeKey={selectedBadge?.key ?? null}
+            selectedBadge={selectedBadge}
             onSelectBadge={selectBadge}
             visitedPostIds={visitedPostIds}
             onOpenPost={(post) =>
@@ -270,7 +275,11 @@ type PostGroup = {
   publishedAt: number;
 };
 
-function groupPosts(posts: Post[], postArtists: PostArtist[]): PostGroup[] {
+function groupPosts(
+  posts: Post[],
+  postArtists: PostArtist[],
+  badgeCatalog: BadgeCatalog,
+): PostGroup[] {
   const artistsByPost = new Map<string, PostArtist[]>();
   for (const artist of postArtists) {
     const list = artistsByPost.get(artist.postId) || [];
@@ -292,7 +301,7 @@ function groupPosts(posts: Post[], postArtists: PostArtist[]): PostGroup[] {
         (a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt),
       ),
       artists: groupArtists(groupedPosts, artistsByPost),
-      badges: findBadges(groupedPosts),
+      badges: badgeCatalog.findBadges(groupedPosts),
       publishedAt: Math.max(
         ...groupedPosts.map((post) => Date.parse(post.publishedAt)),
       ),
