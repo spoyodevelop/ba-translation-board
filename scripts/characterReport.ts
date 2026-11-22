@@ -1,0 +1,109 @@
+import { writeFile } from "node:fs/promises";
+import { characters } from "../src/characters/characterList.ts";
+import { createCharacterMatcher } from "../src/characters/matchCharacters.ts";
+import { openTursoDatabase } from "../src/database/connection.ts";
+import { mergePostGroups } from "../src/grouping/postGroups.ts";
+import type { Post } from "../src/shared/post.ts";
+
+// 운영 DB의 제목으로 캐릭터 판정이 얼마나 붙는지 잰다. 읽기만 하므로 읽기 전용 토큰을 쓴다.
+// 결과 JSON을 남겨 두면 규칙을 바꾼 뒤 어떤 글의 판정이 달라졌는지 비교할 수 있다.
+
+const help = "사용법: characters:report [결과 JSON 경로]";
+const unmatchedSampleSize = 30;
+
+type Row = Omit<Post, "duplicateGroupId"> & { board: string };
+
+async function main() {
+  const [outFile, ...extra] = process.argv.slice(2);
+  if (extra.length > 0) throw new Error(help);
+  const url = process.env.TURSO_DATABASE_URL;
+  if (!url) throw new Error("TURSO_DATABASE_URL을 설정하세요.");
+  const client = openTursoDatabase({ url, authToken: process.env.TURSO_READ_TOKEN });
+  try {
+    const posts = await client.execute(
+      "SELECT id, board, source, source_id, title, url, author, published_at FROM posts",
+    );
+    const edges = await client.execute(
+      "SELECT first_post_id, second_post_id FROM automatic_matches",
+    );
+    const rows: Row[] = posts.rows.map((row) => ({
+      id: String(row.id),
+      board: String(row.board),
+      source: row.source === "dc" ? "dc" : "arca",
+      sourceId: String(row.source_id),
+      title: String(row.title),
+      url: String(row.url),
+      author: row.author === null ? null : String(row.author),
+      publishedAt: new Date(Number(row.published_at)).toISOString(),
+    }));
+    const groupEdges = edges.rows.map((row) => ({
+      firstId: String(row.first_post_id),
+      secondId: String(row.second_post_id),
+    }));
+    const report = measure(rows, groupEdges);
+    if (outFile) await writeFile(outFile, JSON.stringify(report.byPost, null, 1));
+  } finally {
+    client.close();
+  }
+}
+
+function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
+  const match = createCharacterMatcher(characters);
+  const nameOf = new Map(characters.map((c) => [c.id, c.name]));
+  const byPost = rows.map(({ id, board, title }) => ({
+    id,
+    board,
+    title,
+    characterIds: match(title),
+  }));
+
+  // 묶음은 한쪽 제목에만 이름이 있어도 묶음 전체에 뱃지를 붙인다고 보고 잰다.
+  const grouped = mergePostGroups(rows, edges);
+  const groupOf = new Map(grouped.map((post) => [post.id, post.duplicateGroupId || post.id]));
+  const groupIds = new Map<string, Set<string>>();
+  for (const post of byPost) {
+    const key = groupOf.get(post.id)!;
+    const ids = groupIds.get(key) || new Set<string>();
+    for (const id of post.characterIds) ids.add(id);
+    groupIds.set(key, ids);
+  }
+
+  for (const board of ["translation", "creative"]) {
+    const posts = byPost.filter((post) => post.board === board);
+    const matched = posts.filter((post) => post.characterIds.length > 0).length;
+    const groups = new Set(posts.map((post) => groupOf.get(post.id)!));
+    const matchedGroups = [...groups].filter((key) => groupIds.get(key)!.size > 0).length;
+    console.log(
+      `${board}: 글 ${matched}/${posts.length} (${percent(matched, posts.length)}), ` +
+        `묶음 ${matchedGroups}/${groups.size} (${percent(matchedGroups, groups.size)})`,
+    );
+  }
+
+  const counts = new Map<string, number>();
+  for (const post of byPost)
+    for (const id of post.characterIds) counts.set(id, (counts.get(id) || 0) + 1);
+  const ranked = [...counts].sort((a, b) => b[1] - a[1]);
+  console.log("\n많이 나온 캐릭터");
+  console.log(ranked.slice(0, 30).map(([id, n]) => `${nameOf.get(id)} ${n}`).join(", "));
+  const unseen = characters.filter((c) => !counts.has(c.id)).map((c) => c.name);
+  console.log(`\n한 번도 안 나온 캐릭터 ${unseen.length}명: ${unseen.join(", ")}`);
+
+  const unmatched = byPost.filter((post) => post.characterIds.length === 0);
+  console.log(`\n이름을 못 찾은 제목 (${unmatchedSampleSize}개 표본)`);
+  for (const post of sample(unmatched, unmatchedSampleSize)) console.log(`  ${post.title}`);
+  return { byPost };
+}
+
+function percent(part: number, whole: number): string {
+  if (whole === 0) return "0%";
+  return `${((part / whole) * 100).toFixed(1)}%`;
+}
+
+// 실행할 때마다 같은 표본을 보도록 id 순서로 고르게 뽑는다.
+function sample<T extends { id: string }>(items: T[], size: number): T[] {
+  const sorted = [...items].sort((a, b) => a.id.localeCompare(b.id));
+  const step = Math.max(1, Math.floor(sorted.length / size));
+  return sorted.filter((_, index) => index % step === 0).slice(0, size);
+}
+
+await main();
