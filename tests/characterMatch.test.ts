@@ -116,7 +116,8 @@ test("club names become club badges, not member badges", () => {
     clubIds: ["game-development"],
   });
   assert.deepEqual(matchClubs("핫산) 183호 특별반은 관심받고 싶어"), ["special-class"]);
-  assert.deepEqual(matchClubs("핫산) 선생님을 찾는 짜리우스 스쿼드"), ["arius-squad"]);
+  assert.deepEqual(matchClubs("핫산) 아리우스 스쿼드의 작전 회의"), ["arius-squad"]);
+  assert.deepEqual(matchClubs("핫산) 선생님을 찾는 짜리우스 스쿼드"), []);
 });
 
 test("latin club names match without case inside their own word", () => {
