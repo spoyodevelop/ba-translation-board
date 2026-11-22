@@ -139,7 +139,19 @@ export function PostBoard({
         <select
           aria-label="최소 추천수"
           value={recommendationChoice}
-          onChange={(event) => setRecommendationChoice(event.target.value)}
+          onChange={(event) => {
+            const choice = event.target.value;
+            setRecommendationChoice(choice);
+            // 직접 입력은 숫자를 넣은 뒤 검색 버튼으로 적용한다. 나머지는 고르는 즉시 검색한다.
+            if (choice === "custom") return;
+            // 입력해 두고 아직 검색하지 않은 제목도 검색 버튼을 누른 것처럼 함께 적용한다.
+            const title = new FormData(event.currentTarget.form!).get("title");
+            const nextQuery = String(title ?? "").trim();
+            setQuery(nextQuery);
+            onSearch({ hasQuery: nextQuery !== "", minRecommend: choice });
+            setMinRecommendations(choice === "" ? null : Number(choice));
+            setPage(1);
+          }}
         >
           <option value="">추천컷</option>
           {[5, 10, 20, 30, 50, 70, 100].map((count) => (
@@ -354,6 +366,20 @@ const SearchForm = styled.form`
   select, button {
     background: ${colors.button};
     cursor: pointer;
+  }
+  /* 브라우저 기본 화살표는 오른쪽 테두리에 바짝 붙어 튀어나와 보여서 직접 그리고 여백을 둔다. */
+  select {
+    appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239b9da1' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+  }
+  /* 브라우저 기본 포커스 테두리는 둥근 모서리와 어긋나 보여서 사이트의 다른 포커스 표시와 맞춘다. */
+  input:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid ${colors.accent};
+    outline-offset: 2px;
   }
 `;
 
