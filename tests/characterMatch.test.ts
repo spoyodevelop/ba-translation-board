@@ -62,7 +62,7 @@ test("short common-sounding names need a word of their own", () => {
 test("a name after an adjective ending in 한 is still found", () => {
   assert.deepEqual(match("음해 ) 불량한 마리의 담배"), ["mari"]);
   assert.deepEqual(match("생일에 적적한 마리나.grim"), ["marina"]);
-  assert.deepEqual(match("실수로 고양이 두 마리 불러버린 개연성 센세"), []);
+  assert.deepEqual(match("핫산) 유령 코스프레 한 마리"), ["mari"]);
 });
 
 test("blocked words keep popular names that also appear inside words", () => {
