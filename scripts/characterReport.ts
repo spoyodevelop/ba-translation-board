@@ -3,7 +3,8 @@ import {
   characterAliases,
   characters,
 } from "../src/characters/characterList.ts";
-import { createCharacterMatcher } from "../src/characters/matchCharacters.ts";
+import { groups } from "../src/characters/groupList.ts";
+import { createBadgeMatcher } from "../src/characters/matchCharacters.ts";
 import { openTursoDatabase } from "../src/database/connection.ts";
 import { mergePostGroups } from "../src/grouping/postGroups.ts";
 import type { Post } from "../src/shared/post.ts";
@@ -52,36 +53,39 @@ async function main() {
 }
 
 function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
-  const match = createCharacterMatcher(characters, characterAliases);
+  const match = createBadgeMatcher({ characters, aliases: characterAliases, groups });
   const nameOf = new Map(characters.map((c) => [c.id, c.name]));
-  const byPost = rows.map(({ id, board, title }) => ({
-    id,
-    board,
-    title,
-    characterIds: match(title),
-  }));
+  const byPost = rows.map(({ id, board, title }) => ({ id, board, title, ...match(title) }));
+  const hasBadge = (post: (typeof byPost)[number]) =>
+    post.characterIds.length > 0 || post.groupIds.length > 0;
 
-  // 묶음은 한쪽 제목에만 이름이 있어도 묶음 전체에 뱃지를 붙인다고 보고 잰다.
-  const grouped = mergePostGroups(rows, edges);
-  const groupOf = new Map(grouped.map((post) => [post.id, post.duplicateGroupId || post.id]));
-  const groupIds = new Map<string, Set<string>>();
+  // 같은 글 묶음은 한쪽 제목에만 이름이 있어도 묶음 전체에 뱃지를 붙인다고 보고 잰다.
+  const merged = mergePostGroups(rows, edges);
+  const bundleOf = new Map(merged.map((post) => [post.id, post.duplicateGroupId || post.id]));
+  const bundleHasBadge = new Map<string, boolean>();
   for (const post of byPost) {
-    const key = groupOf.get(post.id)!;
-    const ids = groupIds.get(key) || new Set<string>();
-    for (const id of post.characterIds) ids.add(id);
-    groupIds.set(key, ids);
+    const key = bundleOf.get(post.id)!;
+    bundleHasBadge.set(key, bundleHasBadge.get(key) || hasBadge(post));
   }
 
   for (const board of ["translation", "creative"]) {
     const posts = byPost.filter((post) => post.board === board);
-    const matched = posts.filter((post) => post.characterIds.length > 0).length;
-    const groups = new Set(posts.map((post) => groupOf.get(post.id)!));
-    const matchedGroups = [...groups].filter((key) => groupIds.get(key)!.size > 0).length;
+    const withCharacter = posts.filter((post) => post.characterIds.length > 0).length;
+    const withBadge = posts.filter(hasBadge).length;
+    const bundles = new Set(posts.map((post) => bundleOf.get(post.id)!));
+    const bundlesWithBadge = [...bundles].filter((key) => bundleHasBadge.get(key)).length;
     console.log(
-      `${board}: 글 ${matched}/${posts.length} (${percent(matched, posts.length)}), ` +
-        `묶음 ${matchedGroups}/${groups.size} (${percent(matchedGroups, groups.size)})`,
+      `${board}: 캐릭터 ${percent(withCharacter, posts.length)}, ` +
+        `단체 포함 글 ${withBadge}/${posts.length} (${percent(withBadge, posts.length)}), ` +
+        `묶음 ${bundlesWithBadge}/${bundles.size} (${percent(bundlesWithBadge, bundles.size)})`,
     );
   }
+
+  const groupCounts = groups.map((group) => {
+    const count = byPost.filter((post) => post.groupIds.includes(group.id)).length;
+    return `${group.name} ${count}`;
+  });
+  console.log(`\n단체: ${groupCounts.join(", ")}`);
 
   const counts = new Map<string, number>();
   for (const post of byPost)
@@ -103,8 +107,8 @@ function measure(rows: Row[], edges: { firstId: string; secondId: string }[]) {
   console.log(`\n낱말 속에 붙어 나온 이름 (2번 이상, 상위 ${inWordListSize}개)`);
   console.log(repeated.slice(0, inWordListSize).map(([key, n]) => `${key}×${n}`).join(", "));
 
-  const unmatched = byPost.filter((post) => post.characterIds.length === 0);
-  console.log(`\n이름을 못 찾은 제목 (${unmatchedSampleSize}개 표본)`);
+  const unmatched = byPost.filter((post) => !hasBadge(post));
+  console.log(`\n뱃지가 없는 제목 (${unmatchedSampleSize}개 표본)`);
   for (const post of sample(unmatched, unmatchedSampleSize)) console.log(`  ${post.title}`);
   return { byPost };
 }

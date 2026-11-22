@@ -4,12 +4,19 @@ import {
   characterAliases,
   characters,
 } from "../src/characters/characterList.ts";
+import { groups } from "../src/characters/groupList.ts";
 import {
-  createCharacterMatcher,
+  createBadgeMatcher,
   defaultBlockedWords,
 } from "../src/characters/matchCharacters.ts";
 
-const match = createCharacterMatcher(characters, characterAliases);
+const matchBadges = createBadgeMatcher({
+  characters,
+  aliases: characterAliases,
+  groups,
+});
+const match = (title: string) => matchBadges(title).characterIds;
+const matchGroups = (title: string) => matchBadges(title).groupIds;
 
 test("longer names win over names inside them", () => {
   assert.deepEqual(match("핫산) 에리나에게 레슬링 기술 거는 안나"), ["erina", "anna"]);
@@ -84,4 +91,27 @@ test("aliases point to listed characters and are not hidden", () => {
     assert.ok(!names.has(alias.text), alias.text);
     for (const word of defaultBlockedWords) assert.ok(!word.includes(alias.text), `${alias.text} ⊂ ${word}`);
   }
+});
+
+test("group names become group badges, not member badges", () => {
+  assert.deepEqual(matchBadges("핫산) 낚시하러 가는 겜창부"), {
+    characterIds: [],
+    groupIds: ["game-development"],
+  });
+  assert.deepEqual(matchGroups("핫산) 183호 특별반은 관심받고 싶어"), ["special-class"]);
+  assert.deepEqual(matchGroups("핫산) 선생님을 찾는 짜리우스 스쿼드"), ["arius-squad"]);
+});
+
+test("latin group names match without case inside their own word", () => {
+  assert.deepEqual(matchGroups("핫산) fox 가정부 서비스 입니다!.manhwa"), ["fox"]);
+  assert.deepEqual(matchGroups("#FOX소대"), ["fox"]);
+  assert.deepEqual(matchGroups("핫산) 꽃가루 때문에 고생하는 C&C ①~④"), ["cleaning-and-clearing"]);
+  assert.deepEqual(matchGroups("firefox 설정"), []);
+});
+
+test("characters and groups in one title are both found", () => {
+  assert.deepEqual(matchBadges("핫산) 엔지니어부의 새 발명품을 테스트하는 게임개발부와 유즈"), {
+    characterIds: ["yuzu"],
+    groupIds: ["game-development"],
+  });
 });

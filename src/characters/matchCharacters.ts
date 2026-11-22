@@ -1,4 +1,5 @@
 import type { Character, CharacterAlias } from "./characterList";
+import type { Group } from "./groupList";
 
 // 캐릭터 이름을 품고 있지만 캐릭터를 가리키지 않는 흔한 단어다. 이름보다 먼저 지운다.
 // 운영 제목에서 잘못 잡힌 예를 보고 더한다. 예: 냥카이브(카이), 레이싱(레이), 세미나(미나)
@@ -46,46 +47,61 @@ export const defaultStrictBoundaryNames = [
 // 경계를 엄격히 보는 이름 뒤에 올 수 있는 글자다. 조사와 호칭만 받아서 "버린", "기린" 같은 낱말 속 글자를 거른다.
 const nameSuffixes = "이가의은는을를와과랑도한에로쨩짱양씨";
 
-// 지운 자리를 채우는 글자다. 한글이 아니어서 앞뒤 글자와 이어져 새 이름이 되지 않는다.
+// 지운 자리를 채우는 글자다. 글자가 아니어서 앞뒤 글자와 이어져 새 이름이 되지 않는다.
 const mask = "□";
 
 type Pattern = {
   // 커플링 별명은 캐릭터 여럿을 가리킨다.
   characterIds: string[];
+  groupIds: string[];
   text: string;
   // 낱말의 경계에 있을 때만 이름으로 볼지 정한다.
   needsBoundary: boolean;
 };
 
-export type CharacterMatcher = (title: string) => string[];
+// 제목에 나온 순서대로 담는다.
+export type TitleBadges = { characterIds: string[]; groupIds: string[] };
 
-// 제목에 이름이 나오는 캐릭터의 id를 제목에 나온 순서로 돌려준다.
-export function createCharacterMatcher(
-  characters: Character[],
-  aliases: CharacterAlias[],
-  blockedWords: string[] = defaultBlockedWords,
-  strictBoundaryNames: string[] = defaultStrictBoundaryNames,
-): CharacterMatcher {
-  const patterns = buildPatterns(characters, aliases, strictBoundaryNames);
+export type BadgeMatcher = (title: string) => TitleBadges;
+
+// 캐릭터와 단체 이름을 한 번에 찾아야 긴 이름이 먼저 지워진다. 예: 아리우스 스쿼드 속 아리우스
+export function createBadgeMatcher(options: {
+  characters: Character[];
+  aliases: CharacterAlias[];
+  groups: Group[];
+  blockedWords?: string[];
+  strictBoundaryNames?: string[];
+}): BadgeMatcher {
+  const blockedWords = options.blockedWords || defaultBlockedWords;
+  const patterns = buildPatterns(
+    options.characters,
+    options.aliases,
+    options.groups,
+    options.strictBoundaryNames || defaultStrictBoundaryNames,
+  );
   return (title) => {
-    let text = title.normalize("NFKC");
+    // 영문 단체 이름(FOX, C&C)을 대소문자 없이 찾는다.
+    let text = title.normalize("NFKC").toLowerCase();
     for (const word of blockedWords) text = maskAll(text, word);
 
-    const found: { characterIds: string[]; index: number }[] = [];
+    const found: { pattern: Pattern; index: number }[] = [];
     for (const pattern of patterns) {
       const matches = findName(text, pattern);
       if (matches.length === 0) continue;
-      found.push({ characterIds: pattern.characterIds, index: matches[0] });
+      found.push({ pattern, index: matches[0] });
       // 찾은 이름을 지워서 더 짧은 이름이 그 안에서 다시 잡히지 않게 한다. 예: 에리나 속 에리
       for (const index of matches)
         text = text.slice(0, index) + mask.repeat(pattern.text.length) + text.slice(index + pattern.text.length);
     }
 
-    const ids: string[] = [];
-    for (const { characterIds } of found.sort((a, b) => a.index - b.index))
-      for (const characterId of characterIds)
-        if (!ids.includes(characterId)) ids.push(characterId);
-    return ids;
+    const badges: TitleBadges = { characterIds: [], groupIds: [] };
+    for (const { pattern } of found.sort((a, b) => a.index - b.index)) {
+      for (const id of pattern.characterIds)
+        if (!badges.characterIds.includes(id)) badges.characterIds.push(id);
+      for (const id of pattern.groupIds)
+        if (!badges.groupIds.includes(id)) badges.groupIds.push(id);
+    }
+    return badges;
   };
 }
 
@@ -93,31 +109,42 @@ export function createCharacterMatcher(
 function buildPatterns(
   characters: Character[],
   aliases: CharacterAlias[],
+  groups: Group[],
   strictBoundaryNames: string[],
 ): Pattern[] {
+  const character = (ids: string[], text: string, needsBoundary: boolean) =>
+    ({ characterIds: ids, groupIds: [], text, needsBoundary });
   const familyCounts = new Map<string, number>();
   for (const { familyName } of characters)
     if (familyName) familyCounts.set(familyName, (familyCounts.get(familyName) || 0) + 1);
 
   const patterns: Pattern[] = [];
-  for (const character of characters) {
-    const { id, name, familyName } = character;
+  for (const { id, name, familyName } of characters) {
     const needsBoundary =
       name.length === 1 || strictBoundaryNames.includes(name);
-    patterns.push({ characterIds: [id], text: name, needsBoundary });
+    patterns.push(character([id], name, needsBoundary));
     if (!familyName) continue;
     // 성과 함께 쓴 이름은 길어서 낱말과 겹칠 일이 적다.
-    patterns.push({ characterIds: [id], text: `${familyName} ${name}`, needsBoundary: false });
-    patterns.push({ characterIds: [id], text: `${familyName}${name}`, needsBoundary: false });
+    patterns.push(character([id], `${familyName} ${name}`, false));
+    patterns.push(character([id], `${familyName}${name}`, false));
     // 성만 쓴 제목도 있다. 짧은 성은 낱말과 겹치고, 같은 성이 여럿이면 누구인지 알 수 없어 뺀다.
     const familyOnlyIsSafe =
       familyName.length >= 3 && familyCounts.get(familyName) === 1;
     if (familyOnlyIsSafe)
-      patterns.push({ characterIds: [id], text: familyName, needsBoundary: false });
+      patterns.push(character([id], familyName, false));
   }
   // 두 글자 이하 별명은 낱말 속에 들어 있기 쉬워서 이름처럼 경계를 엄격히 본다. 예: 나기, 키키
   for (const { text, characterIds } of aliases)
-    patterns.push({ characterIds, text, needsBoundary: text.length <= 2 });
+    patterns.push(character(characterIds, text, text.length <= 2));
+  // 영문 단체 이름은 다른 영단어 속에 들어 있기 쉬워서 경계를 엄격히 본다. 예: fox
+  for (const { id, texts } of groups)
+    for (const text of texts)
+      patterns.push({
+        characterIds: [],
+        groupIds: [id],
+        text,
+        needsBoundary: text.length <= 2 || /^[a-z&\s]+$/.test(text),
+      });
   return patterns.sort((a, b) => b.text.length - a.text.length);
 }
 
@@ -134,14 +161,15 @@ function findName(text: string, pattern: Pattern): number[] {
 function isStandaloneWord(text: string, index: number, length: number): boolean {
   const before = text[index - 1];
   const after = text[index + length];
-  const startsWord = before === undefined || !isHangul(before);
+  const startsWord = before === undefined || !isLetter(before);
   const endsWord =
-    after === undefined || !isHangul(after) || nameSuffixes.includes(after);
+    after === undefined || !isLetter(after) || nameSuffixes.includes(after);
   return startsWord && endsWord;
 }
 
-function isHangul(char: string): boolean {
-  return /\p{Script=Hangul}/u.test(char);
+// 영문 단체 이름도 경계를 보므로 한글만이 아니라 모든 글자를 낱말의 일부로 본다.
+function isLetter(char: string): boolean {
+  return /\p{L}/u.test(char);
 }
 
 function maskAll(text: string, word: string): string {
