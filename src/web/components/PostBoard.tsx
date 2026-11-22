@@ -139,7 +139,19 @@ export function PostBoard({
         <select
           aria-label="최소 추천수"
           value={recommendationChoice}
-          onChange={(event) => setRecommendationChoice(event.target.value)}
+          onChange={(event) => {
+            const choice = event.target.value;
+            setRecommendationChoice(choice);
+            // 직접 입력은 숫자를 넣은 뒤 검색 버튼으로 적용한다. 나머지는 고르는 즉시 검색한다.
+            if (choice === "custom") return;
+            // 입력해 두고 아직 검색하지 않은 제목도 검색 버튼을 누른 것처럼 함께 적용한다.
+            const title = new FormData(event.currentTarget.form!).get("title");
+            const nextQuery = String(title ?? "").trim();
+            setQuery(nextQuery);
+            onSearch({ hasQuery: nextQuery !== "", minRecommend: choice });
+            setMinRecommendations(choice === "" ? null : Number(choice));
+            setPage(1);
+          }}
         >
           <option value="">추천컷</option>
           {[5, 10, 20, 30, 50, 70, 100].map((count) => (
