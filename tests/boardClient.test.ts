@@ -21,6 +21,7 @@ import { boardFromSearch, searchForBoard } from "../src/web/hooks/useBoardTab.ts
 import { artistFilterFromSearch, searchForArtistFilter } from "../src/web/hooks/useArtistFilter.ts";
 import {
   artistFilterParams,
+  badgeFilterParams,
   followArtistParams,
   openPostParams,
   searchParams,
@@ -299,6 +300,11 @@ test("the artist filter lives in the address and switching tabs clears it", () =
     board: "translation",
     action: "follow",
   });
+  // 캐릭터·단체는 공개 정보라 어느 뱃지인지 보낸다.
+  assert.deepEqual(
+    badgeFilterParams({ board: "creative", badgeKind: "character", badgeId: "mine", groupCount: 7 }),
+    { board: "creative", badge_kind: "character", badge_id: "mine", group_count: 7 },
+  );
 });
 
 test("followed artists persist per browser, ignore invalid entries and merge changes from other tabs", () => {

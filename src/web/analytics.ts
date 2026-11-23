@@ -1,5 +1,6 @@
 import type { Board } from "../shared/boards.ts";
 import type { Post } from "../shared/post";
+import type { BadgeKind } from "./badges.ts";
 
 declare global {
   interface Window {
@@ -72,6 +73,23 @@ export function followArtistParams(event: FollowArtistEvent) {
   return { board: event.board, action: event.action };
 }
 
+// 캐릭터와 단체는 게임에 나오는 공개 정보라 어느 뱃지인지 보낸다. 고른 때만 보내고 풀 때는 보내지 않는다.
+export type BadgeFilterEvent = {
+  board: Board;
+  badgeKind: BadgeKind;
+  badgeId: string;
+  groupCount: number;
+};
+
+export function badgeFilterParams(event: BadgeFilterEvent) {
+  return {
+    board: event.board,
+    badge_kind: event.badgeKind,
+    badge_id: event.badgeId,
+    group_count: event.groupCount,
+  };
+}
+
 // 태그가 없으면(로컬·Preview·광고 차단) 보내지 않는다. 링크 이동이나 화면 동작은 막지 않는다.
 function send(name: string, params: Record<string, string | number | boolean>) {
   window.gtag?.("event", name, params);
@@ -85,9 +103,12 @@ export function trackSearch(event: SearchEvent) {
   send("search", searchParams(event));
 }
 
-
 export function trackArtistFilter(event: ArtistFilterEvent) {
   send("filter_artist", artistFilterParams(event));
+}
+
+export function trackBadgeFilter(event: BadgeFilterEvent) {
+  send("filter_badge", badgeFilterParams(event));
 }
 
 export function trackFollowArtist(event: FollowArtistEvent) {
