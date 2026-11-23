@@ -15,6 +15,7 @@ import { usePersonalState } from "./hooks/usePersonalState";
 import { mergePostGroups } from "../grouping/postGroups.ts";
 import {
   trackArtistFilter,
+  trackBadgeFilter,
   trackFollowArtist,
   trackOpenPost,
   trackSearch,
@@ -92,6 +93,7 @@ export function TursoBoard() {
         onFilterArtist={(event) =>
           trackArtistFilter({ ...event, board: tab.board })
         }
+        onFilterBadge={(event) => trackBadgeFilter({ ...event, board: tab.board })}
         onFollowArtist={(artist) => {
           personal.follow(artist);
           trackFollowArtist({ board: tab.board, action: "follow" });

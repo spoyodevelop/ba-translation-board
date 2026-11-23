@@ -2,7 +2,12 @@ import styled from "@emotion/styled";
 import { useMemo, useRef, useState } from "react";
 import type { Post } from "../../shared/post";
 import type { PostArtist } from "../../database/boardSnapshot";
-import type { ArtistFilterEvent, OpenedPost, SearchEvent } from "../analytics.ts";
+import type {
+  ArtistFilterEvent,
+  BadgeFilterEvent,
+  OpenedPost,
+  SearchEvent,
+} from "../analytics.ts";
 import { useArtistFilter } from "../hooks/useArtistFilter.ts";
 import { useBadgeFilter } from "../hooks/useBadgeFilter.ts";
 import { isSameBadge } from "../badges.ts";
@@ -26,6 +31,7 @@ type Props = {
   onOpenPost: (opened: OpenedPost) => void;
   onSearch: (search: Omit<SearchEvent, "board">) => void;
   onFilterArtist: (event: Omit<ArtistFilterEvent, "board">) => void;
+  onFilterBadge: (event: Omit<BadgeFilterEvent, "board">) => void;
   onFollowArtist: (artist: FollowedArtist) => void;
   onUnfollowArtist: (key: string) => void;
   loading: boolean;
@@ -44,6 +50,7 @@ export function PostBoard({
   onOpenPost,
   onSearch,
   onFilterArtist,
+  onFilterBadge,
   onFollowArtist,
   onUnfollowArtist,
   loading,
@@ -126,6 +133,11 @@ export function PostBoard({
     selectBadgeFilter(next);
     setPage(1);
     boardRef.current?.scrollIntoView({ block: "start" });
+    if (next === null) return;
+    const groupCount = groups.filter((group) =>
+      group.badges.some((badge) => isSameBadge(badge, next)),
+    ).length;
+    onFilterBadge({ badgeKind: next.kind, badgeId: next.id, groupCount });
   }
 
   // 보고 있는 뱃지를 다시 누르면 전체 보기로 돌아간다.
