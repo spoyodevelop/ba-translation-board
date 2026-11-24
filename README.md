@@ -87,7 +87,4 @@ worker는 직접 운영하는 서버에서 돌아가요.
 | `src/worker/lease.ts` | 작업 소유권 확인 |
 | `src/worker/runtime.ts` | 작업 일정과 재시도 |
 
-```bash
-npm test
-```
 
