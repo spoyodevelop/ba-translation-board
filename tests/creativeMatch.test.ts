@@ -36,7 +36,7 @@ test("different episode numbers are different posts", () => {
 test("same author within an hour needs a half-similar title", () => {
   assert.equal(judgeCreativePair(pair("말랑", "말랑", 1, true)).verdict, "same");
   assert.equal(
-    judgeCreativePair(pair("터질듯한 ㅅㄱ~", "터질듯한 ㄳ~", 5, true)).verdict,
+    judgeCreativePair(pair("오늘도 수고 ㅅㄱ~", "오늘도 수고 ㄳ~", 5, true)).verdict,
     "same",
   );
   // 같은 작가가 같은 캐릭터를 연달아 올린 다른 그림이 많았다.

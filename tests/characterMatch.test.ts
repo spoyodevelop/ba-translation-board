@@ -22,8 +22,8 @@ const matchClubs = (title: string) => matchBadges(title).clubIds;
 
 test("longer names win over names inside them", () => {
   assert.deepEqual(match("핫산) 에리나에게 레슬링 기술 거는 안나"), ["erina", "anna"]);
-  assert.deepEqual(match("핫산) 쉬운 여자 스미카"), ["sumika"]);
-  assert.deepEqual(match("핫산) 같이 목욕하는 이치카와 미카"), ["ichika", "mika"]);
+  assert.deepEqual(match("핫산) 산책하는 스미카"), ["sumika"]);
+  assert.deepEqual(match("핫산) 같이 장보는 이치카와 미카"), ["ichika", "mika"]);
   assert.deepEqual(match("핫산) 쿠루미는 스고이쟈나이!"), ["kurumi"]);
   assert.deepEqual(match("핫산) 달맞이를 준비하는 프라나"), ["plana"]);
 });
@@ -55,7 +55,7 @@ test("one-syllable names need a word of their own", () => {
 
 test("short common-sounding names need a word of their own", () => {
   assert.deepEqual(match("번역)미카는 마녀가 아니야"), ["mika"]);
-  assert.deepEqual(match("핫산) 케이쨩에게 마이크로 비키니를 부탁해봤다"), ["kei"]);
+  assert.deepEqual(match("핫산) 케이쨩에게 마이크로 노래를 부탁해봤다"), ["kei"]);
   assert.deepEqual(match("모모이 클레이로 만들어봤는데"), ["momoi"]);
   assert.deepEqual(match("핫산) 고릴라 트리오"), []);
   assert.deepEqual(match("[번역] 밀레니엄 학생들에게 리오로 오해 받는 치사"), ["rio"]);
@@ -63,14 +63,14 @@ test("short common-sounding names need a word of their own", () => {
 });
 
 test("a name after an adjective ending in 한 is still found", () => {
-  assert.deepEqual(match("음해 ) 불량한 마리의 담배"), ["mari"]);
+  assert.deepEqual(match("핫산) 불량한 마리의 일탈"), ["mari"]);
   assert.deepEqual(match("생일에 적적한 마리나.grim"), ["marina"]);
   assert.deepEqual(match("핫산) 유령 코스프레 한 마리"), ["mari"]);
 });
 
 test("blocked words keep popular names that also appear inside words", () => {
   assert.deepEqual(match("핫산) 아이리와 한정 케이크"), ["airi"]);
-  assert.deepEqual(match("핫산) 배변패드를 들킨 케이쨩"), ["kei"]);
+  assert.deepEqual(match("핫산) 숙제를 들킨 케이쨩"), ["kei"]);
   assert.deepEqual(match("길을 잃고 오디세이아 배에 들어온 고양이 히나 쨩"), ["hina"]);
 });
 
@@ -95,7 +95,7 @@ test("aliases point to their characters", () => {
 });
 
 test("a longer name wins over an alias inside it", () => {
-  assert.deepEqual(match("칼학생회장 때문에 멘헤라 터진 미카"), ["kal-student-council-president", "mika"]);
+  assert.deepEqual(match("칼학생회장 때문에 화가 난 미카"), ["kal-student-council-president", "mika"]);
   assert.deepEqual(match("미카에 대한 대처법을 알아낸 나기사"), ["mika", "nagisa"]);
 });
 
