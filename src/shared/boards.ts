@@ -15,8 +15,6 @@ export type BoardConfig = {
   dcSearchHead: string;
   // 디시 목록은 말머리 ID로 거른 뒤에도 행의 말머리 이름을 다시 확인한다.
   dcHeadLabel: string;
-  // 이 날짜 이전 글은 수집하지 않았다는 안내에 쓴다(KST 날짜).
-  firstCollectedOn: string;
   // 원작 작가 보기·팔로우를 보여 줄지다. 작가는 번역 글에 실린 원작 출처에서만 찾는다.
   showsOriginalArtists: boolean;
 };
@@ -29,7 +27,6 @@ export const boardConfigs: Record<Board, BoardConfig> = {
     arcaCategory: "번역",
     dcSearchHead: "120",
     dcHeadLabel: "번역",
-    firstCollectedOn: "2026-10-03",
     showsOriginalArtists: true,
   },
   creative: {
@@ -39,8 +36,6 @@ export const boardConfigs: Record<Board, BoardConfig> = {
     arcaCategory: "창작",
     dcSearchHead: "40",
     dcHeadLabel: "창작",
-    // 수동 판정한 첫 표본의 시작일이다. 창작 수집을 열 때 실제 첫 수집일로 다시 정한다.
-    firstCollectedOn: "2026-11-01",
     // 창작 글은 직접 그린 작품이라 원작 작가가 없다.
     showsOriginalArtists: false,
   },
