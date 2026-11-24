@@ -68,15 +68,9 @@ export function TursoBoard() {
       <SourceLinks board={boardConfig} />
       <BoardInfo>
         <p>글은 작성일 기준으로 최근 {postRetentionMonths}개월간 보관해요.</p>
-        <p>
-          첫 수집일{" "}
-          {koreanDate.format(
-            new Date(`${boardConfig.firstCollectedOn}T00:00:00+09:00`),
-          )}
-          {oldestPost && (
-            <> · 가장 오래된 글 {koreanDate.format(new Date(oldestPost.publishedAt))} 작성</>
-          )}
-        </p>
+        {oldestPost && (
+          <p>가장 오래된 글 {koreanDate.format(new Date(oldestPost.publishedAt))} 작성</p>
+        )}
         <p role="status">{status}</p>
       </BoardInfo>
       {personal.error && <Status role="alert">{personal.error}</Status>}
