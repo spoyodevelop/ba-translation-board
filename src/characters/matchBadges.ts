@@ -3,7 +3,7 @@ import type { Club } from "./clubList";
 import type { TitleWords } from "./titleWords";
 
 // 경계를 볼 때 이름 뒤에 와도 되는 조사·호칭.
-export const nameSuffixes = "이가의은는을를와과랑도한에로쨩짱양씨";
+export const nameSuffixes = "이가의은는을를와과랑도한에로쨩짱양씨님";
 
 // 글자가 아니어서 지운 자리가 앞뒤와 이어져 새 이름이 되지 않는다.
 const mask = "□";

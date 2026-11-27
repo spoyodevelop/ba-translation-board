@@ -23,5 +23,7 @@ export const titleWords: TitleWords = {
     "총학",
     "키키",
     "나기",
+    "문주",
+    "용왕",
   ],
 };
