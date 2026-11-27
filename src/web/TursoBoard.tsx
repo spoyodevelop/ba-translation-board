@@ -43,7 +43,7 @@ export function TursoBoard() {
   const boardConfig = boardConfigs[tab.board];
   const board = useTursoBoard(boardConfig.board);
   useEffect(() => {
-    document.title = `블루아카이브 ${boardConfig.label} 모아보기 | 블아 ${boardConfig.label} 탭`;
+    document.title = `블루아카이브 ${boardConfig.label} 모아보기 | 블루아카이브 ${boardConfig.label} 탭`;
   }, [boardConfig.label]);
   useEffect(() => {
     // 탭마다 글이 달라 따로 색인하고, 작가·배지 필터는 같은 탭의 일부라 탭 주소 하나로 모은다.
