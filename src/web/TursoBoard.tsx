@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { AppHeader } from "./components/AppHeader";
 import { SourceLinks } from "./components/SourceLinks";
 import { BoardTabs } from "./components/BoardTabs";
-import { useBoardTab } from "./hooks/useBoardTab";
+import { searchForBoard, useBoardTab } from "./hooks/useBoardTab";
 import { PostBoard } from "./components/PostBoard";
 import { createBadgeCatalog } from "./badges.ts";
 import { characterAliases, characters } from "../characters/characterList.ts";
@@ -43,8 +43,14 @@ export function TursoBoard() {
   const boardConfig = boardConfigs[tab.board];
   const board = useTursoBoard(boardConfig.board);
   useEffect(() => {
-    document.title = `블아 ${boardConfig.label} 탭 모아보기`;
+    document.title = `블루아카이브 ${boardConfig.label} 모아보기 | 블아 ${boardConfig.label} 탭`;
   }, [boardConfig.label]);
+  useEffect(() => {
+    // 탭마다 글이 달라 따로 색인하고, 작가·배지 필터는 같은 탭의 일부라 탭 주소 하나로 모은다.
+    const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) return;
+    canonical.href = `${window.location.origin}/${searchForBoard("", tab.board)}`;
+  }, [tab.board]);
   const personal = usePersonalState();
   const posts = useMemo(
     () => mergePostGroups(board.snapshot.posts, board.snapshot.automaticEdges),
