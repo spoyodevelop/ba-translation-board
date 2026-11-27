@@ -7,6 +7,10 @@ import { siteAdapters } from "../sources/siteAdapters.ts";
 
 const maxCollectionPages = 10;
 const forbiddenListCooldownMs = 20 * 60_000;
+// 목록은 최신 글부터 나오므로 첫 페이지와 겹치는 글은 최근 글이다. 보관 기간 전체를 읽으면
+// 읽기 비용이 쌓인 글 수만큼 커지므로 최근 2주만 읽는다. 워커가 2주 넘게 멈췄다면 아는 글이 없어
+// 처음 수집처럼 최대 페이지까지 받는다.
+const knownPostWindowMs = 14 * 24 * 60 * 60_000;
 
 type Dependencies = {
   repositories: WorkerRepositories;
@@ -48,7 +52,9 @@ export function createNodePostCollector(deps: Dependencies) {
     await state.saveCollection(current);
     try {
       const known = new Set(
-        (await posts.listRecent(0, source)).map((post) => post.id),
+        (await posts.listRecent(now() - knownPostWindowMs, source)).map(
+          (post) => post.id,
+        ),
       );
       const needsHistory = !previous.historyBackfilled || known.size === 0;
       const collected = new Map<

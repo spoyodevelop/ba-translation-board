@@ -46,7 +46,8 @@ function post(source: Source, id: number): ListedPost {
     url: `https://example.com/${id}`,
     author: null,
     authorId: null,
-    publishedAt: "2026-10-02T00:00:00Z",
+    // 수집기는 최근 2주 글만 아는 글로 보므로, 테스트 시계(1_800_000_000_000)와 같은 날에 둔다.
+    publishedAt: "2027-01-15T00:00:00Z",
     duplicateGroupId: null,
     viewCount: 1,
     recommendCount: 2,
