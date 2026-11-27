@@ -131,6 +131,27 @@ export function createPostRepository(client: RepositoryClient, board: Board) {
       if (!result.rows[0]) return null;
       return postFromRow(result.rows[0]);
     },
+    // 수집이 목록 페이지에서 이미 저장한 글을 찾을 때 쓴다. 읽는 행이 넘긴 ID 수를 넘지 않게 기본 키로 찾는다.
+    // board를 조건에 넣으면 플래너가 board 인덱스로 그 board의 글 전체를 훑으므로, board는 읽은 뒤에 거른다.
+    async findStoredIds(ids: string[]): Promise<Set<string>> {
+      if (ids.length === 0) return new Set();
+      const result = await client.execute({
+        sql: `SELECT id, board FROM posts WHERE id IN (${ids.map(() => "?").join(", ")})`,
+        args: ids,
+      });
+      const stored = new Set<string>();
+      for (const row of result.rows) {
+        if (row.board === board) stored.add(String(row.id));
+      }
+      return stored;
+    },
+    async hasAny(source: Source): Promise<boolean> {
+      const result = await client.execute({
+        sql: "SELECT 1 FROM posts WHERE board = ? AND source = ? LIMIT 1",
+        args: [board, source],
+      });
+      return result.rows.length > 0;
+    },
     async listRecent(
       since: number,
       source: Source | null = null,
