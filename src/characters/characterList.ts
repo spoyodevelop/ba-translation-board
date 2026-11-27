@@ -234,6 +234,7 @@ export const characterAliases: CharacterAlias[] = [
   { text: "히죽히죽", characterIds: ["professor-smug"] },
   { text: "아로프라", characterIds: ["arona", "plana"] },
   { text: "철도가키", characterIds: ["hikari", "nozomi"] },
+  { text: "아바오", characterIds: ["aoba"] },
   // 별명이 아니라 작중 다른 이름이라 횟수와 상관없이 둔다.
   { text: "미리아", characterIds: ["akira"] },
 ];
