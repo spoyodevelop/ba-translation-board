@@ -114,9 +114,11 @@ export function createArtistRepository(client: RepositoryClient, board: Board) {
           `DELETE FROM artwork_artists WHERE NOT EXISTS (
             SELECT 1 FROM post_sources s
             WHERE s.platform = artwork_artists.platform AND s.original_id = artwork_artists.original_id)`,
-          `DELETE FROM pixiv_profiles WHERE NOT EXISTS (
-            SELECT 1 FROM artwork_artists a
-            WHERE a.platform = 'pixiv' AND a.artist_id = pixiv_profiles.user_id)`,
+          // artwork_artists에는 artist_id 인덱스가 없어 NOT EXISTS로 쓰면 프로필마다 픽시브 작품을 전부 훑는다.
+          // Turso는 읽은 행 수로 과금하므로, 살아 있는 작가 목록을 한 번만 만드는 NOT IN으로 둔다.
+          `DELETE FROM pixiv_profiles WHERE user_id NOT IN (
+            SELECT artist_id FROM artwork_artists
+            WHERE platform = 'pixiv' AND artist_id IS NOT NULL)`,
         ],
         "write",
       );

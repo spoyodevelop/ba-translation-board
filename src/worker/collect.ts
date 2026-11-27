@@ -47,10 +47,8 @@ export function createNodePostCollector(deps: Dependencies) {
     };
     await state.saveCollection(current);
     try {
-      const known = new Set(
-        (await posts.listRecent(0, source)).map((post) => post.id),
-      );
-      const needsHistory = !previous.historyBackfilled || known.size === 0;
+      const needsHistory =
+        !previous.historyBackfilled || !(await posts.hasAny(source));
       const collected = new Map<
         string,
         Awaited<ReturnType<typeof deps.remote.list>>[number]
@@ -60,8 +58,14 @@ export function createNodePostCollector(deps: Dependencies) {
         const pagePosts = await deps.remote.list(source, page, deps.board);
         if (pagePosts.length === 0) break;
         for (const post of pagePosts) collected.set(post.id, post);
-        if (!needsHistory && pagePosts.some((post) => known.has(post.id)))
-          break;
+        // 저장한 글 전체를 미리 읽지 않고 이 페이지의 글만 DB에 묻는다.
+        // Turso는 읽은 행 수로 과금하므로, 쌓인 글 수와 상관없이 페이지 크기만큼만 읽게 한다.
+        if (!needsHistory) {
+          const stored = await posts.findStoredIds(
+            pagePosts.map((post) => post.id),
+          );
+          if (stored.size > 0) break;
+        }
         if (page < maxCollectionPages) await sleep(site.pagePauseMs);
       }
       await posts.upsert(

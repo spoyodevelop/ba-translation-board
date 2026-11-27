@@ -378,6 +378,28 @@ test("board repositories never read posts, sources or matches of the other board
   });
 });
 
+test("collection checks only the listed ids by primary key and stays within its board", async () => {
+  await withDatabase(async (client) => {
+    const translation = createWorkerRepositories(client, "translation");
+    const creative = createWorkerRepositories(client, "creative");
+    await translation.posts.upsert([post("arca-1"), post("dc-1")], 1000);
+    await creative.posts.upsert([post("arca-2")], 1000);
+    assert.deepEqual(
+      [...(await creative.posts.findStoredIds(["arca-1", "arca-2", "arca-9"]))],
+      ["arca-2"],
+    );
+    assert.deepEqual([...(await creative.posts.findStoredIds([]))], []);
+    assert.equal(await creative.posts.hasAny("arca"), true);
+    assert.equal(await creative.posts.hasAny("dc"), false);
+    assert.equal(await translation.posts.hasAny("dc"), true);
+    // board 인덱스로 찾으면 board의 글 전체를 훑는다. 기본 키로 넘긴 ID만 찾아야 한다.
+    const plan = await client.execute(
+      "EXPLAIN QUERY PLAN SELECT id, board FROM posts WHERE id IN ('arca-1', 'arca-2')",
+    );
+    assert.match(String(plan.rows[0].detail), /sqlite_autoindex_posts_1|PRIMARY KEY/);
+  });
+});
+
 test("matches for a few posts are read through the post indexes, not the whole table", async () => {
   await withDatabase(async (client) => {
     const db = createWorkerRepositories(client, "translation");
