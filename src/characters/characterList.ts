@@ -159,6 +159,8 @@ export const characters: Character[] = [
   { id: "tsumugi", name: "츠무기", familyName: "시이나", school: "wildhunt" },
   { id: "manami", name: "마나미", familyName: "우루와시", school: "wildhunt" },
   { id: "urara", name: "우라라", familyName: "운린인", school: "wildhunt" },
+  { id: "kanon", name: "카논", familyName: "쿠온지", school: "wildhunt" },
+  { id: "sayo", name: "사요", familyName: "코시로", school: "wildhunt" },
   { id: "rana", name: "라나", familyName: "후루하타", school: "redwinter" },
   { id: "arona", name: "아로나", familyName: null, school: "schale" },
   { id: "plana", name: "프라나", familyName: null, school: "schale" },
@@ -208,6 +210,7 @@ export const characters: Character[] = [
   { id: "nagomi", name: "나고미", familyName: "이오지가라", school: null },
   { id: "suiko", name: "스이코", familyName: "타카노스", school: null },
   { id: "youko", name: "요코", familyName: "우즈오", school: null },
+  { id: "asuka", name: "아스카", familyName: "핫타", school: null },
   { id: "professor-smug", name: "니야니야 교수", familyName: null, school: null },
   { id: "ein", name: "아인", familyName: null, school: null },
   { id: "sof", name: "소프", familyName: null, school: null },
@@ -231,4 +234,6 @@ export const characterAliases: CharacterAlias[] = [
   { text: "히죽히죽", characterIds: ["professor-smug"] },
   { text: "아로프라", characterIds: ["arona", "plana"] },
   { text: "철도가키", characterIds: ["hikari", "nozomi"] },
+  // 별명이 아니라 작중 다른 이름이라 횟수와 상관없이 둔다.
+  { text: "미리아", characterIds: ["akira"] },
 ];
