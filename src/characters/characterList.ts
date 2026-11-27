@@ -195,7 +195,7 @@ export const characters: Character[] = [
   { id: "kai", name: "카이", familyName: "사루야", school: "shanhaijing" },
   { id: "akemi", name: "아케미", familyName: "쿠리하마", school: null },
   { id: "akira", name: "아키라", familyName: "키요스미", school: "wildhunt" },
-  { id: "nanami", name: "나나미", familyName: "고모리", school: "odyssey" },
+  { id: "nanami", name: "나나미", familyName: "고노카미", school: "odyssey" },
   { id: "hiromi", name: "히로미", familyName: null, school: "wildhunt" },
   { id: "maia", name: "마이아", familyName: "타치키", school: "arius" },
   { id: "mai", name: "마이", familyName: "카자마키", school: "kronos" },
@@ -234,6 +234,16 @@ export const characterAliases: CharacterAlias[] = [
   { text: "히죽히죽", characterIds: ["professor-smug"] },
   { text: "아로프라", characterIds: ["arona", "plana"] },
   { text: "철도가키", characterIds: ["hikari", "nozomi"] },
+  { text: "아바오", characterIds: ["aoba"] },
+  { text: "수나코", characterIds: ["hanako"] },
+  { text: "와까모", characterIds: ["wakamo"] },
+  { text: "몸모이", characterIds: ["momoi"] },
+  // 성이 같은 둘이라 성만으로는 잡지 않으므로 자매를 함께 붙인다.
+  { text: "타치바나", characterIds: ["hikari", "nozomi"] },
+  { text: "문주", characterIds: ["kisaki"] },
+  { text: "파우스트", characterIds: ["hifumi"] },
+  { text: "히후아즈", characterIds: ["hifumi", "azusa"] },
+  { text: "용왕", characterIds: ["nanami"] },
   // 별명이 아니라 작중 다른 이름이라 횟수와 상관없이 둔다.
   { text: "미리아", characterIds: ["akira"] },
 ];
